@@ -25,15 +25,25 @@ pub trait Merkleized {
     }
 }
 
+pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
+    let mut hasher = Sha256::new();
+    hasher.update(bytes.as_ref());
+    let output = hasher.finalize();
+    output.into()
+}
+
 pub trait MerkleProof {
     fn get_len_and_tree_depth(&mut self) -> (usize, usize);
     fn get_hash_tree(&mut self) -> Vec<Vec<u8>>;
     fn get_zeroes(&mut self) -> Vec<Vec<u8>> {
-        let zeroes_str =
-            std::fs::read_to_string("src/merkleization/cached_computations/zeroes.json").unwrap();
-        let zeroes_vec: serde_json::Value = serde_json::from_str(zeroes_str.as_str()).unwrap();
-        let zeroes_vec: Vec<Vec<u8>> = serde_json::from_value(zeroes_vec).unwrap();
-        zeroes_vec
+        let mut z_roots = vec![vec![0; 32]];
+        for i in 1..40 {
+            let mut z_root = z_roots[i - 1].clone();
+            z_root.append(&mut z_roots[i - 1].clone());
+            z_roots.push(sha256(z_root).to_vec());
+        }
+
+        z_roots
     }
     fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String>;
 }
