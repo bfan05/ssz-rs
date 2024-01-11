@@ -12,6 +12,7 @@ pub use proofs::is_valid_merkle_branch;
 
 pub(crate) const BYTES_PER_CHUNK: usize = 32;
 pub(crate) const BITS_PER_CHUNK: usize = BYTES_PER_CHUNK * (crate::BITS_PER_BYTE as usize);
+pub(crate) const NUM_BYTES_TO_SQUEEZE: usize = 32;
 
 /// A `Merkleized` type provides a "hash tree root" following the SSZ spec.
 pub trait Merkleized {
@@ -22,6 +23,19 @@ pub trait Merkleized {
     fn is_composite_type() -> bool {
         true
     }
+}
+
+pub trait MerkleProof {
+    fn get_len_and_tree_depth(&mut self) -> (usize, usize);
+    fn get_hash_tree(&mut self) -> Vec<Vec<u8>>;
+    fn get_zeroes(&mut self) -> Vec<Vec<u8>> {
+        let zeroes_str =
+            std::fs::read_to_string("src/beacon/data_gen/cached_computations/zeroes.json").unwrap();
+        let zeroes_vec: serde_json::Value = serde_json::from_str(zeroes_str.as_str()).unwrap();
+        let zeroes_vec: Vec<Vec<u8>> = serde_json::from_value(zeroes_vec).unwrap();
+        zeroes_vec
+    }
+    fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String>;
 }
 
 /// An error encountered during merkleization.
@@ -141,7 +155,7 @@ fn merkleize_chunks_with_virtual_padding(
         let depth = height - 1;
         // SAFETY: index is safe while depth == leaf_count.trailing_zeros() < MAX_MERKLE_TREE_DEPTH;
         // qed
-        return Ok(CONTEXT[depth as usize].try_into().expect("can produce a single root chunk"))
+        return Ok(CONTEXT[depth as usize].try_into().expect("can produce a single root chunk"));
     }
 
     let mut layer = chunks.to_vec();
@@ -231,7 +245,7 @@ pub fn merkleize(chunks: &[u8], limit: Option<usize>) -> Result<Node, Merkleizat
     let mut leaf_count = chunk_count.next_power_of_two();
     if let Some(limit) = limit {
         if limit < chunk_count {
-            return Err(MerkleizationError::InputExceedsLimit(limit))
+            return Err(MerkleizationError::InputExceedsLimit(limit));
         }
         leaf_count = limit.next_power_of_two();
     }

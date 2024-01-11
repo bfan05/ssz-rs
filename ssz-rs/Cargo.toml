@@ -19,7 +19,8 @@ serde = ["dep:serde", "hex", "alloy-primitives/serde"]
 [dependencies]
 bitvec = { version = "1.0.0", default-features = false, features = ["alloc"] }
 ssz_rs_derive = { path = "../ssz-rs-derive", version = "0.9.0" }
-sha2 = { version = "0.9.8", default-features = false }
+sha2 = "0.9.6"
+ark-std = { version = "0.3.0", features = ["print-trace"], optional = true }
 serde = { version = "1.0", default-features = false, features = [
     "alloc",
     "derive",
@@ -28,11 +29,14 @@ hex = { version = "0.4.3", default-features = false, features = [
     "alloc",
 ], optional = true }
 alloy-primitives = { version = "0.4.2", default-features = false }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+serde_with = { version = "3.3", features = ["base64"], optional = true }
 
 [dev-dependencies]
 snap = "1.0"
 project-root = "0.2.2"
 serde_json = "1.0.81"
+ark-std = { version = "0.3.0", features = ["print-trace"] }
 
 [build-dependencies]
 sha2 = "0.9.8"
