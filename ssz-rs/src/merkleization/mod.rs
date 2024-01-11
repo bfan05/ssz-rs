@@ -38,6 +38,15 @@ pub trait MerkleProof {
     fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String>;
 }
 
+#[test]
+fn get_zeroes() {
+    let zeroes_str =
+        std::fs::read_to_string("src/merkleization/cached_computations/zeroes.json").unwrap();
+    let zeroes_vec: serde_json::Value = serde_json::from_str(zeroes_str.as_str()).unwrap();
+    let zeroes_vec: Vec<Vec<u8>> = serde_json::from_value(zeroes_vec).unwrap();
+    println!("zeroes_vec: {:?}", zeroes_vec);
+}
+
 /// An error encountered during merkleization.
 #[derive(Debug)]
 pub enum MerkleizationError {
