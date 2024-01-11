@@ -43,7 +43,7 @@ mod container;
 mod de;
 mod error;
 mod list;
-mod merkleization;
+pub mod merkleization;
 mod ser;
 #[cfg(feature = "serde")]
 pub mod serde;
