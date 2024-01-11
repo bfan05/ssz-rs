@@ -3,12 +3,14 @@ use crate::{
     error::{Error, InstanceError},
     lib::*,
     merkleization::{
-        merkleize, mix_in_length, pack_bytes, MerkleizationError, Merkleized, Node, BITS_PER_CHUNK,
+        merkleize, mix_in_length, pack_bytes, MerkleProof, MerkleizationError, Merkleized, Node,
+        BITS_PER_CHUNK, BYTES_PER_CHUNK, NUM_BYTES_TO_SQUEEZE,
     },
     ser::{Serialize, SerializeError},
     Serializable, SimpleSerialize,
 };
 use bitvec::prelude::{BitVec, Lsb0};
+use sha2::{Digest, Sha256};
 
 const BITS_PER_BYTE: usize = crate::BITS_PER_BYTE as usize;
 
@@ -22,6 +24,77 @@ type BitlistInner = BitVec<u8, Lsb0>;
 /// A homogenous collection of a variable number of boolean values.
 #[derive(PartialEq, Eq, Clone)]
 pub struct Bitlist<const N: usize>(BitlistInner);
+
+pub fn log2(x: usize) -> u32 {
+    if x == 0 {
+        0
+    } else if x.is_power_of_two() {
+        1usize.leading_zeros() - x.leading_zeros()
+    } else {
+        0usize.leading_zeros() - x.leading_zeros()
+    }
+}
+
+pub fn get_power_of_two_ceil(x: usize) -> usize {
+    match x {
+        x if x <= 1 => 1,
+        2 => 2,
+        x => 2 * get_power_of_two_ceil((x + 1) / 2),
+    }
+}
+
+pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
+    let mut hasher = Sha256::new();
+    hasher.update(bytes.as_ref());
+    let output = hasher.finalize();
+    output.into()
+}
+
+impl<const N: usize> MerkleProof for Bitlist<N> {
+    fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
+        let len = self.pack_bits().unwrap().len();
+        let mut tree_depth = get_power_of_two_ceil(len);
+        tree_depth = log2(tree_depth) as usize;
+        (len, tree_depth)
+    }
+
+    fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
+        let (len, tree_depth) = self.get_len_and_tree_depth();
+
+        let base: usize = 2;
+        let pow2 = base.pow(tree_depth as u32);
+
+        let mut root_vec = vec![Vec::<u8>::new(); pow2];
+        let chunks = self.pack_bits().unwrap();
+
+        for i in 0..(chunks.len() / BYTES_PER_CHUNK) {
+            let mut slice: Vec<u8> = vec![0; BYTES_PER_CHUNK];
+            for j in (BYTES_PER_CHUNK * i)..(BYTES_PER_CHUNK * i + 32) {
+                slice[j - BYTES_PER_CHUNK * i] = chunks[j];
+            }
+
+            root_vec.push(slice);
+        }
+
+        for _ in len..pow2 {
+            let zeroes: Vec<u8> = vec![0; 32];
+            root_vec.push(zeroes);
+        }
+
+        for i in 1..pow2 {
+            let idx = pow2 - i;
+            let mut root_concat = root_vec[2 * idx].clone();
+            root_concat.append(&mut root_vec[2 * idx + 1].clone());
+            let new_root = sha256(root_concat).to_vec();
+            root_vec[idx] = new_root;
+        }
+        root_vec
+    }
+
+    fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
+        todo!()
+    }
+}
 
 impl<const N: usize> fmt::Debug for Bitlist<N> {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
@@ -77,7 +150,7 @@ impl<const N: usize> Bitlist<N> {
         with_length_bit: bool,
     ) -> Result<usize, SerializeError> {
         if self.len() > N {
-            return Err(InstanceError::Bounded { bound: N, provided: self.len() }.into())
+            return Err(InstanceError::Bounded { bound: N, provided: self.len() }.into());
         }
         let start_len = buffer.len();
         buffer.extend_from_slice(self.as_raw_slice());
@@ -135,7 +208,7 @@ impl<const N: usize> Deserialize for Bitlist<N> {
     fn deserialize(encoding: &[u8]) -> Result<Self, DeserializeError> {
         // validate byte length - min
         if encoding.is_empty() {
-            return Err(DeserializeError::ExpectedFurtherInput { provided: 0, expected: 1 })
+            return Err(DeserializeError::ExpectedFurtherInput { provided: 0, expected: 1 });
         }
 
         // validate byte length - max
@@ -144,12 +217,12 @@ impl<const N: usize> Deserialize for Bitlist<N> {
             return Err(DeserializeError::AdditionalInput {
                 provided: encoding.len(),
                 expected: max_len,
-            })
+            });
         }
 
         let (last_byte, prefix) = encoding.split_last().unwrap();
         if *last_byte == 0u8 {
-            return Err(DeserializeError::InvalidByte(*last_byte))
+            return Err(DeserializeError::InvalidByte(*last_byte));
         }
 
         let mut result = BitlistInner::from_slice(prefix);
@@ -166,7 +239,7 @@ impl<const N: usize> Deserialize for Bitlist<N> {
             return Err(DeserializeError::InvalidInstance(InstanceError::Bounded {
                 bound: N,
                 provided: total_members,
-            }))
+            }));
         }
 
         result.extend_from_bitslice(&last[..additional_members]);

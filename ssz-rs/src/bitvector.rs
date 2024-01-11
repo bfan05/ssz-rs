@@ -2,7 +2,10 @@ use crate::{
     de::{Deserialize, DeserializeError},
     error::{Error, InstanceError, TypeError},
     lib::*,
-    merkleization::{merkleize, pack_bytes, MerkleizationError, Merkleized, Node, BITS_PER_CHUNK},
+    merkleization::{
+        merkleize, pack_bytes, MerkleProof, MerkleizationError, Merkleized, Node, BITS_PER_CHUNK,
+        BYTES_PER_CHUNK, NUM_BYTES_TO_SQUEEZE,
+    },
     ser::{Serialize, SerializeError},
     Serializable, SimpleSerialize,
 };
@@ -10,6 +13,8 @@ use bitvec::{
     field::BitField,
     prelude::{BitVec, Lsb0},
 };
+
+use sha2::{Digest, Sha256};
 
 const BITS_PER_BYTE: usize = crate::BITS_PER_BYTE as usize;
 
@@ -30,6 +35,80 @@ type BitvectorInner = BitVec<u8, Lsb0>;
 /// Refer: <https://stackoverflow.com/a/65462213>
 #[derive(PartialEq, Eq, Clone)]
 pub struct Bitvector<const N: usize>(BitvectorInner);
+
+pub fn log2(x: usize) -> u32 {
+    if x == 0 {
+        0
+    } else if x.is_power_of_two() {
+        1usize.leading_zeros() - x.leading_zeros()
+    } else {
+        0usize.leading_zeros() - x.leading_zeros()
+    }
+}
+
+pub fn get_power_of_two_ceil(x: usize) -> usize {
+    match x {
+        x if x <= 1 => 1,
+        2 => 2,
+        x => 2 * get_power_of_two_ceil((x + 1) / 2),
+    }
+}
+
+pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
+    let mut hasher = Sha256::new();
+    hasher.update(bytes.as_ref());
+    let output = hasher.finalize();
+    output.into()
+}
+
+impl<const N: usize> MerkleProof for Bitvector<N> {
+    fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
+        let len = self.pack_bits().unwrap().len();
+        let mut tree_depth = get_power_of_two_ceil(len);
+        tree_depth = log2(tree_depth) as usize;
+        (len, tree_depth)
+    }
+
+    fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
+        let (len, tree_depth) = self.get_len_and_tree_depth();
+
+        let base: usize = 2;
+        let pow2 = base.pow(tree_depth as u32);
+
+        let mut root_vec = vec![Vec::<u8>::new(); pow2];
+        let chunks = self.pack_bits().unwrap();
+
+        for i in 0..(chunks.len() / BYTES_PER_CHUNK) {
+            let mut slice: Vec<u8> = vec![0; BYTES_PER_CHUNK];
+            for j in (BYTES_PER_CHUNK * i)..(BYTES_PER_CHUNK * i + 32) {
+                slice[j - BYTES_PER_CHUNK * i] = chunks[j];
+            }
+
+            root_vec.push(slice);
+        }
+
+        for _ in len..pow2 {
+            let zeroes: Vec<u8> = vec![0; 32];
+            root_vec.push(zeroes);
+        }
+
+        for i in 1..pow2 {
+            let idx = pow2 - i;
+            let mut root_concat = root_vec[2 * idx].clone();
+            root_concat.append(&mut root_vec[2 * idx + 1].clone());
+            let new_root = sha256(root_concat).to_vec();
+            root_vec[idx] = new_root;
+        }
+
+        println!("root_vec: {:?}", root_vec);
+
+        root_vec
+    }
+
+    fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
+        todo!()
+    }
+}
 
 impl<const N: usize> fmt::Debug for Bitvector<N> {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
@@ -115,7 +194,7 @@ impl<const N: usize> Serializable for Bitvector<N> {
 impl<const N: usize> Serialize for Bitvector<N> {
     fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
         if N == 0 {
-            return Err(TypeError::InvalidBound(N).into())
+            return Err(TypeError::InvalidBound(N).into());
         }
         let bytes_to_write = Self::size_hint();
         buffer.reserve(bytes_to_write);
@@ -129,7 +208,7 @@ impl<const N: usize> Serialize for Bitvector<N> {
 impl<const N: usize> Deserialize for Bitvector<N> {
     fn deserialize(encoding: &[u8]) -> Result<Self, DeserializeError> {
         if N == 0 {
-            return Err(TypeError::InvalidBound(N).into())
+            return Err(TypeError::InvalidBound(N).into());
         }
 
         let expected_length = byte_length(N);
@@ -137,13 +216,13 @@ impl<const N: usize> Deserialize for Bitvector<N> {
             return Err(DeserializeError::ExpectedFurtherInput {
                 provided: encoding.len(),
                 expected: expected_length,
-            })
+            });
         }
         if encoding.len() > expected_length {
             return Err(DeserializeError::AdditionalInput {
                 provided: encoding.len(),
                 expected: expected_length,
-            })
+            });
         }
 
         let mut result = Self::default();
@@ -155,7 +234,7 @@ impl<const N: usize> Deserialize for Bitvector<N> {
             let last_byte = encoding.last().unwrap();
             let remainder_bits = last_byte >> remainder_count;
             if remainder_bits != 0 {
-                return Err(DeserializeError::InvalidByte(*last_byte))
+                return Err(DeserializeError::InvalidByte(*last_byte));
             }
         }
         Ok(result)
