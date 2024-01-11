@@ -30,7 +30,7 @@ pub trait MerkleProof {
     fn get_hash_tree(&mut self) -> Vec<Vec<u8>>;
     fn get_zeroes(&mut self) -> Vec<Vec<u8>> {
         let zeroes_str =
-            std::fs::read_to_string("src/beacon/data_gen/cached_computations/zeroes.json").unwrap();
+            std::fs::read_to_string("src/merkleization/cached_computations/zeroes.json").unwrap();
         let zeroes_vec: serde_json::Value = serde_json::from_str(zeroes_str.as_str()).unwrap();
         let zeroes_vec: Vec<Vec<u8>> = serde_json::from_value(zeroes_vec).unwrap();
         zeroes_vec
