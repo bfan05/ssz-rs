@@ -14,6 +14,7 @@ use bitvec::{
     prelude::{BitVec, Lsb0},
 };
 
+use serde_json::Map;
 use sha2::{Digest, Sha256};
 
 const BITS_PER_BYTE: usize = crate::BITS_PER_BYTE as usize;
@@ -63,7 +64,11 @@ pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
 
 impl<const N: usize> MerkleProof for Bitvector<N> {
     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
-        let len = self.pack_bits().unwrap().len();
+        println!("N: {:?}", N);
+
+        // len is the number of chunks
+        println!("{:?}", self.pack_bits().unwrap());
+        let len = self.pack_bits().unwrap().len() / BYTES_PER_CHUNK;
         let mut tree_depth = get_power_of_two_ceil(len);
         tree_depth = log2(tree_depth) as usize;
         (len, tree_depth)
@@ -71,6 +76,9 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
 
     fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
         let (len, tree_depth) = self.get_len_and_tree_depth();
+
+        println!("len: {:?}", len);
+        println!("tree_depth: {:?}", tree_depth);
 
         let base: usize = 2;
         let pow2 = base.pow(tree_depth as u32);
@@ -83,6 +91,8 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
             for j in (BYTES_PER_CHUNK * i)..(BYTES_PER_CHUNK * i + 32) {
                 slice[j - BYTES_PER_CHUNK * i] = chunks[j];
             }
+
+            println!("i and slice: {:?}, {:?}", i, slice);
 
             root_vec.push(slice);
         }
@@ -106,7 +116,79 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
     }
 
     fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
-        todo!()
+        let roots = self.get_hash_tree();
+        let zeroes = self.get_zeroes();
+
+        let (len, tree_depth) = self.get_len_and_tree_depth();
+
+        let scale = get_power_of_two_ceil(self.len() / len);
+        println!("scale: {:?}", scale);
+
+        let total_depth = get_power_of_two_ceil(N / scale);
+        let total_depth = log2(total_depth) as usize;
+
+        let idx_to_get = (vec[0] as usize) / scale;
+
+        let base_len = total_depth - tree_depth;
+
+        let mut base_path = vec![vec![0; 32]; base_len];
+        let mut base_dir = vec![0; base_len];
+
+        let mut root = roots[1].clone();
+        for i in 1..(base_len + 1) {
+            // base_path[base_len - i] contains the zero hash along the path
+            base_path[base_len - i] = zeroes[tree_depth + i].clone();
+            // root is the hash of the current element we are on, eventually will be hash of everything
+            let mut root_clone = root.clone();
+            // hash root with the corresponding 0
+            root_clone.append(&mut base_path[base_len - i].clone());
+            root = sha256(root_clone).to_vec();
+        }
+
+        // dir of proof
+        let mut new_dir = vec![0; tree_depth];
+        let mut dir_idx: usize = idx_to_get;
+
+        // should have that tree_depth =
+
+        for i in 0..tree_depth {
+            new_dir[total_depth - base_len - 1 - i] = dir_idx % 2;
+            dir_idx /= 2;
+        }
+        let mut roots_idx: usize = 1;
+        let mut new_path = Vec::new();
+
+        println!("roots size: {:?}", roots.len());
+
+        // roots_idx is the index of the element along the path whose hash we need
+        // new_path is the path of the merkle proof
+        for i in 0..tree_depth {
+            roots_idx = roots_idx * 2 + new_dir[i];
+            new_path.push(roots[roots_idx ^ 1].clone());
+        }
+        // get the full path and directions
+        base_path.append(&mut new_path);
+        base_dir.append(&mut new_dir);
+
+        // val is the hash root of the chunk in which the element we want to get belongs
+        let val = roots[roots_idx].clone();
+
+        let mut map = Map::new();
+        let root = hex::encode(root);
+        let val = hex::encode(val);
+        let mut proof = base_path.iter().map(|p| hex::encode(p)).collect();
+
+        println!("val: {:?}", val);
+        println!("root: {:?}", root);
+
+        proof
+
+        // if vec.len() == 1 {
+        //     return proof;
+        // } else {
+        //     proof.append(&mut self[idx_to_get].get_proof(vec[1..].to_vec()));
+        //     return proof;
+        // }
     }
 }
 
