@@ -405,26 +405,26 @@ fn derive_merkle_proof_impl(
             let field_count = fields.iter().len();
             let impl_by_field = fields.iter().enumerate().map(|(i, f)| match &f.ident {
                 Some(field_name) => quote_spanned! { f.span() =>
-                    let chunk = self.#field_name.hash_tree_root()?;
-                    root_vec.push(chunk);
+                    let chunk = self.#field_name.hash_tree_root();
+                    root_vec.push(chunk.as_ref().unwrap().to_vec());
                 },
                 None => quote_spanned! { f.span() =>
-                    let chunk = self.0.hash_tree_root()?;
-                    root_vec.push(chunk);
+                    let chunk = self.0.hash_tree_root();
+                    root_vec.push(chunk.as_ref().unwrap().to_vec());
                 },
             });
             quote! {
                 fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
                     let len = #field_count;
-                    let mut tree_depth = get_power_of_two_ceil(len);
-                    tree_depth = log2(tree_depth)
+                    let mut tree_depth = get_power_of_two_ceil(len) as usize;
+                    tree_depth = log2(tree_depth) as usize;
                     (len, tree_depth)
                 }
 
-                fn get_hash_tree(&mut self) -> Vec<Vec<usize>> {
+                fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
                     let (len, tree_depth) = self.get_len_and_tree_depth();
-                    let base = 2;
-                    let pow = base.pow(tree_depth as u32);
+                    let base: usize = 2;
+                    let pow2 = base.pow(tree_depth as u32);
                     let mut root_vec = vec![Vec::<u8>::new(); pow2];
 
                     #(#impl_by_field)*
@@ -448,52 +448,86 @@ fn derive_merkle_proof_impl(
                     let roots = self.get_hash_tree();
                     ssz_rs::__internal::get_list_proof(roots, vec)
                 }
-
-                fn hash_tree_root(&mut self) -> Result<ssz_rs::Node, ssz_rs::MerkleizationError> {
-                    let mut chunks = vec![0u8; #field_count * #BYTES_PER_CHUNK];
-                    ssz_rs::__internal::merkleize(&chunks, None)
-                }
             }
         }
+        // Data::Enum(ref data) => {
+        //     unreachable!("data was already validated to exclude union types")
+        // }
         Data::Enum(ref data) => {
-            // let hash_tree_root_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
+            unimplemented!("enums are currently not supported by this derive macro")
+            // let get_len_depth_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
             //     let variant_name = &variant.ident;
             //     match &variant.fields {
             //         Fields::Unnamed(..) => {
             //             // NOTE: validated to only be `transparent` operation at this point...
-            //             if helper_attr.is_some() {
-            //                 quote_spanned! { variant.span() =>
-            //                    Self::#variant_name(value) => value.hash_tree_root(),
-            //                 }
-            //             } else {
-            //                 quote_spanned! { variant.span() =>
-            //                    Self::#variant_name(value) => {
-            //                        let selector = #i;
-            //                        let data_root  = value.hash_tree_root()?;
-            //                        Ok(ssz_rs::__internal::mix_in_selector(&data_root, selector))
-            //                    }
-            //                 }
+            //             quote_spanned! { variant.span() =>
+            //                 Self::#variant_name(value) => value.get_len_and_tree_depth(),
             //             }
             //         }
             //         Fields::Unit => {
             //             quote_spanned! { variant.span() =>
-            //                 Self::None => Ok(ssz_rs::__internal::mix_in_selector(
-            //                     &ssz_rs::Node::default(),
-            //                     0,
-            //                 )),
+            //                 Self::None => (0 as usize, 0 as usize)
             //             }
             //         }
             //         _ => unreachable!(),
             //     }
             // });
+
+            // let get_hash_tree_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
+            //     let variant_name = &variant.ident;
+            //     match &variant.fields {
+            //         Fields::Unnamed(..) => {
+            //             // NOTE: validated to only be `transparent` operation at this point...
+            //             quote_spanned! { variant.span() =>
+            //                 Self::#variant_name(value) => value.get_hash_tree(),
+            //             }
+            //         }
+            //         Fields::Unit => {
+            //             quote_spanned! { variant.span() =>
+            //                 Self::None => Vec::Vec<u8>::new()
+            //             }
+            //         }
+            //         _ => unreachable!(),
+            //     }
+            // });
+
+            // let get_proof_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
+            //     let variant_name = &variant.ident;
+            //     match &variant.fields {
+            //         Fields::Unnamed(..) => {
+            //             // NOTE: validated to only be `transparent` operation at this point...
+            //             quote_spanned! { variant.span() =>
+            //                 Self::#variant_name(value) => value.get_proof(vec),
+            //             }
+            //         }
+            //         Fields::Unit => {
+            //             quote_spanned! { variant.span() =>
+            //                 Self::None => Vec::<String>::new()
+            //             }
+            //         }
+            //         _ => unreachable!(),
+            //     }
+            // });
+
             // quote! {
-            //     fn hash_tree_root(&mut self) -> Result<ssz_rs::Node, ssz_rs::MerkleizationError> {
+            //     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
             //         match self {
-            //                 #(#hash_tree_root_by_variant)*
+            //             #(#get_len_depth_by_variant)*
+            //         }
+            //     }
+
+            //     fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
+            //         match self {
+            //             #(#get_hash_tree_by_variant)*
+            //         }
+            //     }
+
+            //     fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
+            //         match self {
+            //             #(#get_proof_by_variant)*
             //         }
             //     }
             // }
-            unreachable!("data was already validated to exclude union types")
         }
         Data::Union(..) => unreachable!("data was already validated to exclude union types"),
     };
@@ -737,6 +771,22 @@ pub fn derive_merkleized(input: proc_macro::TokenStream) -> proc_macro::TokenStr
     proc_macro::TokenStream::from(expansion)
 }
 
+#[proc_macro_derive(MerkleProof, attributes(ssz))]
+pub fn derive_merkle_proof(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+
+    let data = &input.data;
+    let helper_attrs = extract_helper_attrs(&input);
+    validate_derive_input(data, &helper_attrs);
+    let helper_attr = helper_attrs.first();
+
+    let name = &input.ident;
+    let generics = &input.generics;
+
+    let expansion = derive_merkle_proof_impl(data, name, generics, helper_attr);
+    proc_macro::TokenStream::from(expansion)
+}
+
 #[proc_macro_derive(SimpleSerialize, attributes(ssz))]
 pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -754,12 +804,16 @@ pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     let simple_serialize_impl = derive_simple_serialize_impl(name, generics);
 
+    let merkle_proof_impl = derive_merkle_proof_impl(data, name, generics, helper_attr);
+
     let expansion = quote! {
         #serializable_impl
 
         #merkleization_impl
 
         #simple_serialize_impl
+
+        #merkle_proof_impl
     };
 
     proc_macro::TokenStream::from(expansion)

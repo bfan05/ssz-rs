@@ -48,7 +48,7 @@ mod ser;
 #[cfg(feature = "serde")]
 pub mod serde;
 mod uint;
-mod union;
+// mod union;
 pub mod utils;
 mod vector;
 
@@ -109,7 +109,9 @@ mod exports {
         de::{Deserialize, DeserializeError},
         error::{Error as SimpleSerializeError, InstanceError, TypeError},
         list::List,
-        merkleization::{is_valid_merkle_branch, MerkleizationError, Merkleized, Node},
+        merkleization::{
+            is_valid_merkle_branch, MerkleProof, MerkleizationError, Merkleized, Node,
+        },
         ser::{Serialize, SerializeError},
         uint::U256,
         utils::{deserialize, serialize},
@@ -128,7 +130,7 @@ pub mod prelude {
     // expose this so the derive macro has everything in scope
     // with a simple `prelude` import
     pub use crate as ssz_rs;
-    pub use ssz_rs_derive::{Merkleized, Serializable, SimpleSerialize};
+    pub use ssz_rs_derive::{MerkleProof, Merkleized, Serializable, SimpleSerialize};
 }
 
 #[doc(hidden)]
@@ -137,7 +139,7 @@ pub mod __internal {
     // exported for derive macro to avoid code duplication...
     pub use crate::{
         de::ContainerDeserializer,
-        merkleization::{merkleize, mix_in_selector},
+        merkleization::{get_list_proof, merkleize, mix_in_selector},
         ser::Serializer,
     };
 }

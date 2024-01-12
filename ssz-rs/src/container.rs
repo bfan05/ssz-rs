@@ -1,6 +1,33 @@
 #[cfg(test)]
 mod tests {
-    use crate::prelude::*;
+    use sha2::{Digest, Sha256};
+
+    use crate::{merkleization::NUM_BYTES_TO_SQUEEZE, prelude::*};
+
+    pub fn log2(x: usize) -> u32 {
+        if x == 0 {
+            0
+        } else if x.is_power_of_two() {
+            1usize.leading_zeros() - x.leading_zeros()
+        } else {
+            0usize.leading_zeros() - x.leading_zeros()
+        }
+    }
+
+    pub fn get_power_of_two_ceil(x: usize) -> usize {
+        match x {
+            x if x <= 1 => 1,
+            2 => 2,
+            x => 2 * get_power_of_two_ceil((x + 1) / 2),
+        }
+    }
+
+    pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
+        let mut hasher = Sha256::new();
+        hasher.update(bytes.as_ref());
+        let output = hasher.finalize();
+        output.into()
+    }
 
     #[derive(Default, Debug, PartialEq, Eq, SimpleSerialize)]
     struct Foo {

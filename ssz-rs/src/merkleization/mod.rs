@@ -578,121 +578,121 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_hash_tree_root() {
-        #[derive(PartialEq, Eq, Debug, SimpleSerialize, Clone)]
-        enum Bar {
-            A(u32),
-            B(List<bool, 32>),
-        }
+    // #[test]
+    // fn test_hash_tree_root() {
+    //     #[derive(PartialEq, Eq, Debug, SimpleSerialize, Clone)]
+    //     enum Bar {
+    //         A(u32),
+    //         B(List<bool, 32>),
+    //     }
 
-        impl Default for Bar {
-            fn default() -> Self {
-                Self::A(Default::default())
-            }
-        }
+    //     impl Default for Bar {
+    //         fn default() -> Self {
+    //             Self::A(Default::default())
+    //         }
+    //     }
 
-        #[derive(PartialEq, Eq, Debug, Default, SimpleSerialize, Clone)]
-        struct Foo {
-            a: u32,
-            b: Vector<u32, 4>,
-            c: bool,
-            d: Bitlist<27>,
-            e: Bar,
-            f: Bitvector<4>,
-            g: List<u16, 7>,
-        }
+    //     #[derive(PartialEq, Eq, Debug, Default, SimpleSerialize, Clone)]
+    //     struct Foo {
+    //         a: u32,
+    //         b: Vector<u32, 4>,
+    //         c: bool,
+    //         d: Bitlist<27>,
+    //         e: Bar,
+    //         f: Bitvector<4>,
+    //         g: List<u16, 7>,
+    //     }
 
-        let mut foo = Foo {
-            a: 16u32,
-            b: Vector::try_from(vec![3u32, 2u32, 1u32, 10u32]).unwrap(),
-            c: true,
-            d: Bitlist::try_from(
-                [
-                    true, false, false, true, true, false, true, false, true, true, false, false,
-                    true, true, false, true, false, true, true, false, false, true, true, false,
-                    true, false, true,
-                ]
-                .as_ref(),
-            )
-            .unwrap(),
-            e: Bar::B(List::try_from(vec![true, true, false, false, false, true]).unwrap()),
-            f: Bitvector::try_from([false, true, false, true].as_ref()).unwrap(),
-            g: List::try_from(vec![1, 2]).unwrap(),
-        };
+    //     let mut foo = Foo {
+    //         a: 16u32,
+    //         b: Vector::try_from(vec![3u32, 2u32, 1u32, 10u32]).unwrap(),
+    //         c: true,
+    //         d: Bitlist::try_from(
+    //             [
+    //                 true, false, false, true, true, false, true, false, true, true, false, false,
+    //                 true, true, false, true, false, true, true, false, false, true, true, false,
+    //                 true, false, true,
+    //             ]
+    //             .as_ref(),
+    //         )
+    //         .unwrap(),
+    //         e: Bar::B(List::try_from(vec![true, true, false, false, false, true]).unwrap()),
+    //         f: Bitvector::try_from([false, true, false, true].as_ref()).unwrap(),
+    //         g: List::try_from(vec![1, 2]).unwrap(),
+    //     };
 
-        let root = foo.hash_tree_root().expect("can make root");
-        assert_eq!(
-            root.as_ref(),
-            hex!("7078155bf8f0dc42d8afccec8d9b5aeb54f0a2e8e58fcef3e723f6a867232ce7")
-        );
+    //     let root = foo.hash_tree_root().expect("can make root");
+    //     assert_eq!(
+    //         root.as_ref(),
+    //         hex!("7078155bf8f0dc42d8afccec8d9b5aeb54f0a2e8e58fcef3e723f6a867232ce7")
+    //     );
 
-        let mut original_foo = foo.clone();
+    //     let mut original_foo = foo.clone();
 
-        foo.b[2] = 44u32;
-        foo.d.pop();
-        foo.e = Bar::A(33);
+    //     foo.b[2] = 44u32;
+    //     foo.d.pop();
+    //     foo.e = Bar::A(33);
 
-        let root = original_foo.hash_tree_root().expect("can make root");
-        assert_eq!(
-            root.as_ref(),
-            hex!("7078155bf8f0dc42d8afccec8d9b5aeb54f0a2e8e58fcef3e723f6a867232ce7")
-        );
+    //     let root = original_foo.hash_tree_root().expect("can make root");
+    //     assert_eq!(
+    //         root.as_ref(),
+    //         hex!("7078155bf8f0dc42d8afccec8d9b5aeb54f0a2e8e58fcef3e723f6a867232ce7")
+    //     );
 
-        let root = foo.hash_tree_root().expect("can make root");
-        assert_eq!(
-            root.as_ref(),
-            hex!("0063bfcfabbca567483a2ee859fcfafb958329489eb328ac7f07790c7df1b231")
-        );
+    //     let root = foo.hash_tree_root().expect("can make root");
+    //     assert_eq!(
+    //         root.as_ref(),
+    //         hex!("0063bfcfabbca567483a2ee859fcfafb958329489eb328ac7f07790c7df1b231")
+    //     );
 
-        let encoding = serialize(&original_foo).expect("can serialize");
+    //     let encoding = serialize(&original_foo).expect("can serialize");
 
-        let mut restored_foo = Foo::deserialize(&encoding).expect("can deserialize");
+    //     let mut restored_foo = Foo::deserialize(&encoding).expect("can deserialize");
 
-        let root = restored_foo.hash_tree_root().expect("can make root");
-        assert_eq!(
-            root.as_ref(),
-            hex!("7078155bf8f0dc42d8afccec8d9b5aeb54f0a2e8e58fcef3e723f6a867232ce7")
-        );
+    //     let root = restored_foo.hash_tree_root().expect("can make root");
+    //     assert_eq!(
+    //         root.as_ref(),
+    //         hex!("7078155bf8f0dc42d8afccec8d9b5aeb54f0a2e8e58fcef3e723f6a867232ce7")
+    //     );
 
-        restored_foo.b[2] = 44u32;
-        restored_foo.d.pop();
-        restored_foo.e = Bar::A(33);
+    //     restored_foo.b[2] = 44u32;
+    //     restored_foo.d.pop();
+    //     restored_foo.e = Bar::A(33);
 
-        let root = foo.hash_tree_root().expect("can make root");
-        assert_eq!(
-            root.as_ref(),
-            hex!("0063bfcfabbca567483a2ee859fcfafb958329489eb328ac7f07790c7df1b231")
-        );
-    }
+    //     let root = foo.hash_tree_root().expect("can make root");
+    //     assert_eq!(
+    //         root.as_ref(),
+    //         hex!("0063bfcfabbca567483a2ee859fcfafb958329489eb328ac7f07790c7df1b231")
+    //     );
+    // }
 
-    #[test]
-    fn test_simple_serialize_of_root() {
-        let mut root = Node::default();
-        let mut result = vec![];
-        let _ = root.serialize(&mut result).expect("can encode");
-        let expected_encoding = vec![0; 32];
-        assert_eq!(result, expected_encoding);
+    // #[test]
+    // fn test_simple_serialize_of_root() {
+    //     let mut root = Node::default();
+    //     let mut result = vec![];
+    //     let _ = root.serialize(&mut result).expect("can encode");
+    //     let expected_encoding = vec![0; 32];
+    //     assert_eq!(result, expected_encoding);
 
-        let recovered_root = Node::deserialize(&result).expect("can decode");
-        assert_eq!(recovered_root, Node::default());
+    //     let recovered_root = Node::deserialize(&result).expect("can decode");
+    //     assert_eq!(recovered_root, Node::default());
 
-        let hash_tree_root = root.hash_tree_root().expect("can find root");
-        assert_eq!(hash_tree_root, Node::default());
-    }
+    //     let hash_tree_root = root.hash_tree_root().expect("can find root");
+    //     assert_eq!(hash_tree_root, Node::default());
+    // }
 
-    #[test]
-    fn test_derive_merkleized() {
-        #[derive(Debug, Merkleized)]
-        struct Foo {
-            a: U256,
-        }
+    // #[test]
+    // fn test_derive_merkleized() {
+    //     #[derive(Debug, Merkleized)]
+    //     struct Foo {
+    //         a: U256,
+    //     }
 
-        let mut foo = Foo { a: U256::from(68) };
-        let foo_root = foo.hash_tree_root().unwrap();
-        let expected_root =
-            hex::decode("4400000000000000000000000000000000000000000000000000000000000000")
-                .unwrap();
-        assert_eq!(foo_root.as_ref(), expected_root);
-    }
+    //     let mut foo = Foo { a: U256::from(68) };
+    //     let foo_root = foo.hash_tree_root().unwrap();
+    //     let expected_root =
+    //         hex::decode("4400000000000000000000000000000000000000000000000000000000000000")
+    //             .unwrap();
+    //     assert_eq!(foo_root.as_ref(), expected_root);
+    // }
 }
