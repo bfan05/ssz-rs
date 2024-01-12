@@ -415,19 +415,13 @@ fn derive_merkle_proof_impl(
                 },
             });
 
-            let field_accessors = fields.iter().enumerate().map(|(i, f)| match &f.ident {
-                Some(field_name) => quote_spanned! { f.span() =>
-                    field_vec.push(self.#field_name);
-                },
-                None => quote_spanned! { f.span() =>
-                    field_vec.push(self.0);
-                },
-            });
-
-            // let field_accessors = fields.iter().enumerate().map(|(index, field)| {
-            //     quote! {
-            //         field_vec.push(self.#field.ident);
-            //     }
+            // let field_accessors = fields.iter().enumerate().map(|(i, f)| match &f.ident {
+            //     Some(field_name) => quote_spanned! { f.span() =>
+            //         field_vec.push(self.#field_name);
+            //     },
+            //     None => quote_spanned! { f.span() =>
+            //         field_vec.push(self.0);
+            //     },
             // });
 
             quote! {
@@ -461,18 +455,19 @@ fn derive_merkle_proof_impl(
                     root_vec
                 }
 
-                fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
+                fn get_proof(&mut self, idx: usize) -> Vec<String> {
                     let roots = self.get_hash_tree();
-                    let mut proof = ssz_rs::__internal::get_list_proof(roots, vec.clone());
+                    let mut proof = ssz_rs::__internal::get_list_proof(roots, idx);
 
-                    if vec.len() == 1 {
-                        return proof;
-                    } else {
-                        let mut field_vec = Vec::new();
-                        #(#field_accessors)*
-                        proof.append(&mut field_vec[vec[0]].get_proof(vec[1..].to_vec()));
-                        return proof;
-                    }
+                    // if vec.len() == 1 {
+                    //     return proof;
+                    // } else {
+                    //     let mut field_vec = Vec::new();
+                    //     #(#field_accessors)*
+                    //     proof.append(&mut field_vec[vec[0]].get_proof(vec[1..].to_vec()));
+                    //     return proof;
+                    // }
+                    proof
                 }
             }
         }

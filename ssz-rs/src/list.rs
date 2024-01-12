@@ -50,7 +50,7 @@ pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
 impl<T, const N: usize> MerkleProof for List<T, N>
 where
     // T: Serializable + Merkleized,
-    T: MerkleProof + Serializable + Merkleized,
+    T: Serializable + Merkleized,
 {
     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
         let mut len = self.as_ref().len();
@@ -101,7 +101,7 @@ where
         }
         root_vec
     }
-    fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
+    fn get_proof(&mut self, idx: usize) -> Vec<String> {
         let roots = self.get_hash_tree();
         let zeroes = self.get_zeroes();
 
@@ -112,7 +112,7 @@ where
         let total_depth = get_power_of_two_ceil(N / scale);
         let total_depth = log2(total_depth) as usize;
 
-        let idx_to_get = (vec[0] as usize) / scale;
+        let idx_to_get = (idx as usize) / scale;
 
         let base_len = total_depth - tree_depth;
         let mut base_path = vec![vec![0; 32]; base_len + 1];
@@ -172,12 +172,14 @@ where
         println!("val: {:?}", val);
         println!("root: {:?}", root);
 
-        if vec.len() == 1 {
-            return proof;
-        } else {
-            proof.append(&mut self[idx_to_get].get_proof(vec[1..].to_vec()));
-            return proof;
-        }
+        proof
+
+        // if vec.len() == 1 {
+        //     return proof;
+        // } else {
+        //     proof.append(&mut self[idx_to_get].get_proof(vec[1..].to_vec()));
+        //     return proof;
+        // }
     }
 }
 

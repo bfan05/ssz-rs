@@ -63,11 +63,11 @@ pub trait MerkleProof {
 
         z_roots
     }
-    fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String>;
+    fn get_proof(&mut self, idx: usize) -> Vec<String>;
 }
 
-pub fn get_list_proof(roots: Vec<Vec<u8>>, vec: Vec<usize>) -> Vec<String> {
-    let mut idx_to_get = vec[0].clone();
+pub fn get_list_proof(roots: Vec<Vec<u8>>, idx: usize) -> Vec<String> {
+    let mut idx_to_get = idx.clone();
 
     let n: u8 = (log2(get_power_of_two_ceil(roots.len())) as u8) - 1;
     let mut dir: Vec<u8> = Vec::<u8>::new();
