@@ -110,7 +110,7 @@ fn derive_deserialize_impl(data: &Data, helper_attr: Option<&HelperAttr>) -> Tok
                             let result = <#field_type>::deserialize(&encoding)?;
                             Ok(Self(result))
                         }
-                    }
+                    };
                 }
                 _ => unimplemented!(
                     "this type of struct is currently not supported by this derive macro"
@@ -382,6 +382,124 @@ fn derive_merkleization_impl(
     let (impl_generics, ty_generics, _) = generics.split_for_impl();
     quote! {
         impl #impl_generics ssz_rs::Merkleized for #name #ty_generics {
+            #method
+        }
+    }
+}
+
+fn derive_merkle_proof_impl(
+    data: &Data,
+    name: &Ident,
+    generics: &Generics,
+    helper_attr: Option<&HelperAttr>,
+) -> TokenStream {
+    let method = match data {
+        Data::Struct(ref data) => {
+            let fields = match data.fields {
+                Fields::Named(ref fields) => &fields.named,
+                Fields::Unnamed(ref fields) => &fields.unnamed,
+                _ => unimplemented!(
+                    "this type of struct is currently not supported by this derive macro"
+                ),
+            };
+            let field_count = fields.iter().len();
+            let impl_by_field = fields.iter().enumerate().map(|(i, f)| match &f.ident {
+                Some(field_name) => quote_spanned! { f.span() =>
+                    let chunk = self.#field_name.hash_tree_root()?;
+                    root_vec.push(chunk);
+                },
+                None => quote_spanned! { f.span() =>
+                    let chunk = self.0.hash_tree_root()?;
+                    root_vec.push(chunk);
+                },
+            });
+            quote! {
+                fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
+                    let len = #field_count;
+                    let mut tree_depth = get_power_of_two_ceil(len);
+                    tree_depth = log2(tree_depth)
+                    (len, tree_depth)
+                }
+
+                fn get_hash_tree(&mut self) -> Vec<Vec<usize>> {
+                    let (len, tree_depth) = self.get_len_and_tree_depth();
+                    let base = 2;
+                    let pow = base.pow(tree_depth as u32);
+                    let mut root_vec = vec![Vec::<u8>::new(); pow2];
+
+                    #(#impl_by_field)*
+
+                    for _ in len..pow2 {
+                        let zeroes: Vec<u8> = vec![0; 32];
+                        root_vec.push(zeroes);
+                    }
+                    for i in 1..pow2 {
+                        let idx = pow2 - i;
+                        let mut root_concat = root_vec[2 * idx].clone();
+                        root_concat.append(&mut root_vec[2 * idx + 1].clone());
+                        let new_root = sha256(root_concat).to_vec();
+                        root_vec[idx] = new_root;
+                    }
+
+                    root_vec
+                }
+
+                fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
+                    let roots = self.get_hash_tree();
+                    ssz_rs::__internal::get_list_proof(roots, vec)
+                }
+
+                fn hash_tree_root(&mut self) -> Result<ssz_rs::Node, ssz_rs::MerkleizationError> {
+                    let mut chunks = vec![0u8; #field_count * #BYTES_PER_CHUNK];
+                    ssz_rs::__internal::merkleize(&chunks, None)
+                }
+            }
+        }
+        Data::Enum(ref data) => {
+            // let hash_tree_root_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
+            //     let variant_name = &variant.ident;
+            //     match &variant.fields {
+            //         Fields::Unnamed(..) => {
+            //             // NOTE: validated to only be `transparent` operation at this point...
+            //             if helper_attr.is_some() {
+            //                 quote_spanned! { variant.span() =>
+            //                    Self::#variant_name(value) => value.hash_tree_root(),
+            //                 }
+            //             } else {
+            //                 quote_spanned! { variant.span() =>
+            //                    Self::#variant_name(value) => {
+            //                        let selector = #i;
+            //                        let data_root  = value.hash_tree_root()?;
+            //                        Ok(ssz_rs::__internal::mix_in_selector(&data_root, selector))
+            //                    }
+            //                 }
+            //             }
+            //         }
+            //         Fields::Unit => {
+            //             quote_spanned! { variant.span() =>
+            //                 Self::None => Ok(ssz_rs::__internal::mix_in_selector(
+            //                     &ssz_rs::Node::default(),
+            //                     0,
+            //                 )),
+            //             }
+            //         }
+            //         _ => unreachable!(),
+            //     }
+            // });
+            // quote! {
+            //     fn hash_tree_root(&mut self) -> Result<ssz_rs::Node, ssz_rs::MerkleizationError> {
+            //         match self {
+            //                 #(#hash_tree_root_by_variant)*
+            //         }
+            //     }
+            // }
+            unreachable!("data was already validated to exclude union types")
+        }
+        Data::Union(..) => unreachable!("data was already validated to exclude union types"),
+    };
+    let (impl_generics, ty_generics, _) = generics.split_for_impl();
+    quote! {
+        impl #impl_generics ssz_rs::MerkleProof for #name #ty_generics {
             #method
         }
     }

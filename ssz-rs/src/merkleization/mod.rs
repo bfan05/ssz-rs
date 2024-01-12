@@ -25,6 +25,24 @@ pub trait Merkleized {
     }
 }
 
+pub fn log2(x: usize) -> u32 {
+    if x == 0 {
+        0
+    } else if x.is_power_of_two() {
+        1usize.leading_zeros() - x.leading_zeros()
+    } else {
+        0usize.leading_zeros() - x.leading_zeros()
+    }
+}
+
+pub fn get_power_of_two_ceil(x: usize) -> usize {
+    match x {
+        x if x <= 1 => 1,
+        2 => 2,
+        x => 2 * get_power_of_two_ceil((x + 1) / 2),
+    }
+}
+
 pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
     let mut hasher = Sha256::new();
     hasher.update(bytes.as_ref());
@@ -48,13 +66,36 @@ pub trait MerkleProof {
     fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String>;
 }
 
-#[test]
-fn get_zeroes() {
-    let zeroes_str =
-        std::fs::read_to_string("src/merkleization/cached_computations/zeroes.json").unwrap();
-    let zeroes_vec: serde_json::Value = serde_json::from_str(zeroes_str.as_str()).unwrap();
-    let zeroes_vec: Vec<Vec<u8>> = serde_json::from_value(zeroes_vec).unwrap();
-    println!("zeroes_vec: {:?}", zeroes_vec);
+pub fn get_list_proof(roots: Vec<Vec<u8>>, vec: Vec<usize>) -> Vec<String> {
+    let mut idx_to_get = vec[0].clone();
+
+    let n: u8 = (log2(get_power_of_two_ceil(roots.len())) as u8) - 1;
+    let mut dir: Vec<u8> = Vec::<u8>::new();
+    dir.resize(n.into(), 0);
+
+    for i in 0..n {
+        dir[(n - i - 1) as usize] = (idx_to_get % 2) as u8;
+        idx_to_get /= 2;
+    }
+
+    let mut list_proof: Vec<Vec<u8>> = Vec::new();
+    let mut curr = 1;
+    for i in 0..dir.len() {
+        curr = curr * 2 + dir[i];
+        list_proof.push(roots[curr as usize ^ 1].clone())
+    }
+    let list_dir: Vec<u8> = dir;
+    let list_root = roots[1].clone();
+
+    let mut proof: Vec<String> = list_proof.iter().map(|p| hex::encode(p)).collect();
+    proof
+
+    // if vec.len() == 1 {
+    //     return proof;
+    // } else {
+    //     proof.append(&mut self[idx_to_get].get_proof(vec[1..].to_vec()));
+    //     return proof;
+    // }
 }
 
 /// An error encountered during merkleization.
