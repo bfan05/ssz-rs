@@ -403,6 +403,7 @@ fn derive_merkle_proof_impl(
                 ),
             };
             let field_count = fields.iter().len();
+
             let impl_by_field = fields.iter().enumerate().map(|(i, f)| match &f.ident {
                 Some(field_name) => quote_spanned! { f.span() =>
                     let chunk = self.#field_name.hash_tree_root();
@@ -413,6 +414,22 @@ fn derive_merkle_proof_impl(
                     root_vec.push(chunk.as_ref().unwrap().to_vec());
                 },
             });
+
+            let field_accessors = fields.iter().enumerate().map(|(i, f)| match &f.ident {
+                Some(field_name) => quote_spanned! { f.span() =>
+                    field_vec.push(self.#field_name);
+                },
+                None => quote_spanned! { f.span() =>
+                    field_vec.push(self.0);
+                },
+            });
+
+            // let field_accessors = fields.iter().enumerate().map(|(index, field)| {
+            //     quote! {
+            //         field_vec.push(self.#field.ident);
+            //     }
+            // });
+
             quote! {
                 fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
                     let len = #field_count;
@@ -446,7 +463,16 @@ fn derive_merkle_proof_impl(
 
                 fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
                     let roots = self.get_hash_tree();
-                    ssz_rs::__internal::get_list_proof(roots, vec)
+                    let mut proof = ssz_rs::__internal::get_list_proof(roots, vec.clone());
+
+                    if vec.len() == 1 {
+                        return proof;
+                    } else {
+                        let mut field_vec = Vec::new();
+                        #(#field_accessors)*
+                        proof.append(&mut field_vec[vec[0]].get_proof(vec[1..].to_vec()));
+                        return proof;
+                    }
                 }
             }
         }

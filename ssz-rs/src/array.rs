@@ -2,7 +2,9 @@ use crate::{
     de::{deserialize_homogeneous_composite, Deserialize, DeserializeError},
     error::{InstanceError, TypeError},
     lib::*,
-    merkleization::{elements_to_chunks, merkleize, pack, MerkleizationError, Merkleized, Node},
+    merkleization::{
+        elements_to_chunks, merkleize, pack, MerkleProof, MerkleizationError, Merkleized, Node,
+    },
     ser::{Serialize, SerializeError, Serializer},
     Serializable, SimpleSerialize,
 };
@@ -26,7 +28,7 @@ where
 {
     fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
         if N == 0 {
-            return Err(TypeError::InvalidBound(N).into())
+            return Err(TypeError::InvalidBound(N).into());
         }
         let mut serializer = Serializer::default();
         for element in self {
@@ -42,7 +44,7 @@ where
 {
     fn deserialize(encoding: &[u8]) -> Result<Self, DeserializeError> {
         if N == 0 {
-            return Err(TypeError::InvalidBound(N).into())
+            return Err(TypeError::InvalidBound(N).into());
         }
 
         if !T::is_variable_size() {
@@ -51,13 +53,13 @@ where
                 return Err(DeserializeError::ExpectedFurtherInput {
                     provided: encoding.len(),
                     expected: expected_length,
-                })
+                });
             }
             if encoding.len() > expected_length {
                 return Err(DeserializeError::AdditionalInput {
                     provided: encoding.len(),
                     expected: expected_length,
-                })
+                });
             }
         }
         let elements = deserialize_homogeneous_composite(encoding)?;
@@ -84,6 +86,20 @@ where
 
     fn is_composite_type() -> bool {
         T::is_composite_type()
+    }
+}
+
+impl<T, const N: usize> MerkleProof for [T; N] {
+    fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
+        unimplemented!();
+    }
+
+    fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
+        unimplemented!();
+    }
+
+    fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
+        unimplemented!();
     }
 }
 

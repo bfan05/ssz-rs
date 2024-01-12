@@ -49,8 +49,8 @@ pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
 
 impl<T, const N: usize> MerkleProof for List<T, N>
 where
-    T: Serializable + Merkleized,
-    // T: MerkleProof + Serializable + Merkleized,
+    // T: Serializable + Merkleized,
+    T: MerkleProof + Serializable + Merkleized,
 {
     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
         let mut len = self.as_ref().len();
@@ -172,14 +172,12 @@ where
         println!("val: {:?}", val);
         println!("root: {:?}", root);
 
-        proof
-
-        // if vec.len() == 1 {
-        //     return proof;
-        // } else {
-        //     proof.append(&mut self[idx_to_get].get_proof(vec[1..].to_vec()));
-        //     return proof;
-        // }
+        if vec.len() == 1 {
+            return proof;
+        } else {
+            proof.append(&mut self[idx_to_get].get_proof(vec[1..].to_vec()));
+            return proof;
+        }
     }
 }
 
