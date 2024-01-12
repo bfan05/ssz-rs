@@ -518,7 +518,7 @@ fn derive_merkle_proof_impl(
                     Fields::Unnamed(..) => {
                         // NOTE: validated to only be `transparent` operation at this point...
                         quote_spanned! { variant.span() =>
-                            Self::#variant_name(value) => value.get_proof(vec),
+                            Self::#variant_name(value) => value.get_proof(idx),
                         }
                     }
                     Fields::Unit => {
@@ -543,7 +543,7 @@ fn derive_merkle_proof_impl(
                     }
                 }
 
-                fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
+                fn get_proof(&mut self, idx: usize) -> Vec<String> {
                     match self {
                         #(#get_proof_by_variant)*
                     }
