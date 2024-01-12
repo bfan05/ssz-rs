@@ -1,31 +1,30 @@
-use sha2::{Digest, Sha256};
 use ssz_rs::prelude::*;
 use ssz_rs_derive::SimpleSerialize;
 
-pub fn log2(x: usize) -> u32 {
-    if x == 0 {
-        0
-    } else if x.is_power_of_two() {
-        1usize.leading_zeros() - x.leading_zeros()
-    } else {
-        0usize.leading_zeros() - x.leading_zeros()
-    }
-}
+// pub fn log2(x: usize) -> u32 {
+//     if x == 0 {
+//         0
+//     } else if x.is_power_of_two() {
+//         1usize.leading_zeros() - x.leading_zeros()
+//     } else {
+//         0usize.leading_zeros() - x.leading_zeros()
+//     }
+// }
 
-pub fn get_power_of_two_ceil(x: usize) -> usize {
-    match x {
-        x if x <= 1 => 1,
-        2 => 2,
-        x => 2 * get_power_of_two_ceil((x + 1) / 2),
-    }
-}
+// pub fn get_power_of_two_ceil(x: usize) -> usize {
+//     match x {
+//         x if x <= 1 => 1,
+//         2 => 2,
+//         x => 2 * get_power_of_two_ceil((x + 1) / 2),
+//     }
+// }
 
-pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; 32] {
-    let mut hasher = Sha256::new();
-    hasher.update(bytes.as_ref());
-    let output = hasher.finalize();
-    output.into()
-}
+// pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; 32] {
+//     let mut hasher = Sha256::new();
+//     hasher.update(bytes.as_ref());
+//     let output = hasher.finalize();
+//     output.into()
+// }
 
 #[derive(Debug, SimpleSerialize, PartialEq, Eq)]
 struct Foo {
