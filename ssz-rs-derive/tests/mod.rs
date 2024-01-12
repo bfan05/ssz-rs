@@ -26,11 +26,11 @@ use ssz_rs_derive::SimpleSerialize;
 //     output.into()
 // }
 
-#[derive(Debug, SimpleSerialize, PartialEq, Eq)]
-struct Foo {
-    a: u8,
-    b: u32,
-}
+// #[derive(Debug, SimpleSerialize, PartialEq, Eq)]
+// struct Foo {
+//     a: u8,
+//     b: u32,
+// }
 
 // #[derive(Debug, SimpleSerialize, PartialEq, Eq)]
 // #[ssz(transparent)]
