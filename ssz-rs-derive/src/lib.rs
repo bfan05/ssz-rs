@@ -454,80 +454,80 @@ fn derive_merkle_proof_impl(
         //     unreachable!("data was already validated to exclude union types")
         // }
         Data::Enum(ref data) => {
-            unimplemented!("enums are currently not supported by this derive macro")
-            // let get_len_depth_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
-            //     let variant_name = &variant.ident;
-            //     match &variant.fields {
-            //         Fields::Unnamed(..) => {
-            //             // NOTE: validated to only be `transparent` operation at this point...
-            //             quote_spanned! { variant.span() =>
-            //                 Self::#variant_name(value) => value.get_len_and_tree_depth(),
-            //             }
-            //         }
-            //         Fields::Unit => {
-            //             quote_spanned! { variant.span() =>
-            //                 Self::None => (0 as usize, 0 as usize)
-            //             }
-            //         }
-            //         _ => unreachable!(),
-            //     }
-            // });
+            //unimplemented!("enums are currently not supported by this derive macro")
+            let get_len_depth_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
+                let variant_name = &variant.ident;
+                match &variant.fields {
+                    Fields::Unnamed(..) => {
+                        // NOTE: validated to only be `transparent` operation at this point...
+                        quote_spanned! { variant.span() =>
+                            Self::#variant_name(value) => value.get_len_and_tree_depth(),
+                        }
+                    }
+                    Fields::Unit => {
+                        quote_spanned! { variant.span() =>
+                            Self::None => (0 as usize, 0 as usize)
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            });
 
-            // let get_hash_tree_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
-            //     let variant_name = &variant.ident;
-            //     match &variant.fields {
-            //         Fields::Unnamed(..) => {
-            //             // NOTE: validated to only be `transparent` operation at this point...
-            //             quote_spanned! { variant.span() =>
-            //                 Self::#variant_name(value) => value.get_hash_tree(),
-            //             }
-            //         }
-            //         Fields::Unit => {
-            //             quote_spanned! { variant.span() =>
-            //                 Self::None => Vec::Vec<u8>::new()
-            //             }
-            //         }
-            //         _ => unreachable!(),
-            //     }
-            // });
+            let get_hash_tree_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
+                let variant_name = &variant.ident;
+                match &variant.fields {
+                    Fields::Unnamed(..) => {
+                        // NOTE: validated to only be `transparent` operation at this point...
+                        quote_spanned! { variant.span() =>
+                            Self::#variant_name(value) => value.get_hash_tree(),
+                        }
+                    }
+                    Fields::Unit => {
+                        quote_spanned! { variant.span() =>
+                            Self::None => Vec::Vec<u8>::new()
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            });
 
-            // let get_proof_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
-            //     let variant_name = &variant.ident;
-            //     match &variant.fields {
-            //         Fields::Unnamed(..) => {
-            //             // NOTE: validated to only be `transparent` operation at this point...
-            //             quote_spanned! { variant.span() =>
-            //                 Self::#variant_name(value) => value.get_proof(vec),
-            //             }
-            //         }
-            //         Fields::Unit => {
-            //             quote_spanned! { variant.span() =>
-            //                 Self::None => Vec::<String>::new()
-            //             }
-            //         }
-            //         _ => unreachable!(),
-            //     }
-            // });
+            let get_proof_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
+                let variant_name = &variant.ident;
+                match &variant.fields {
+                    Fields::Unnamed(..) => {
+                        // NOTE: validated to only be `transparent` operation at this point...
+                        quote_spanned! { variant.span() =>
+                            Self::#variant_name(value) => value.get_proof(vec),
+                        }
+                    }
+                    Fields::Unit => {
+                        quote_spanned! { variant.span() =>
+                            Self::None => Vec::<String>::new()
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            });
 
-            // quote! {
-            //     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
-            //         match self {
-            //             #(#get_len_depth_by_variant)*
-            //         }
-            //     }
+            quote! {
+                fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
+                    match self {
+                        #(#get_len_depth_by_variant)*
+                    }
+                }
 
-            //     fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
-            //         match self {
-            //             #(#get_hash_tree_by_variant)*
-            //         }
-            //     }
+                fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
+                    match self {
+                        #(#get_hash_tree_by_variant)*
+                    }
+                }
 
-            //     fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
-            //         match self {
-            //             #(#get_proof_by_variant)*
-            //         }
-            //     }
-            // }
+                fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
+                    match self {
+                        #(#get_proof_by_variant)*
+                    }
+                }
+            }
         }
         Data::Union(..) => unreachable!("data was already validated to exclude union types"),
     };
