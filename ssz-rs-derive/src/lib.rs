@@ -456,7 +456,7 @@ fn derive_merkle_proof_impl(
                     root_vec
                 }
 
-                fn get_proof(&mut self, idx: usize) -> Map<String, Value> {
+                fn get_proof(&mut self, idx: usize) -> serde_json::Map<String, serde_json::Value> {
                     let roots = self.get_hash_tree();
                     let mut proof = ssz_rs::__internal::get_list_proof(roots, idx);
 

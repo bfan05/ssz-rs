@@ -5,7 +5,7 @@ use crate::{
     lib::*,
     ser::{Serialize, SerializeError},
 };
-use serde_json::{Map, Value};
+// use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 
 pub use node::Node;
@@ -64,10 +64,13 @@ pub trait MerkleProof {
 
         z_roots
     }
-    fn get_proof(&mut self, idx: usize) -> Map<String, Value>;
+    fn get_proof(&mut self, idx: usize) -> serde_json::Map<String, serde_json::Value>;
 }
 
-pub fn get_list_proof(roots: Vec<Vec<u8>>, idx: usize) -> Map<String, Value> {
+pub fn get_list_proof(
+    roots: Vec<Vec<u8>>,
+    idx: usize,
+) -> serde_json::Map<String, serde_json::Value> {
     let mut idx_to_get = idx.clone();
 
     let n: u8 = (log2(get_power_of_two_ceil(roots.len())) as u8) - 1;
@@ -92,7 +95,7 @@ pub fn get_list_proof(roots: Vec<Vec<u8>>, idx: usize) -> Map<String, Value> {
 
     let val = roots[curr as usize].clone();
 
-    let mut map = Map::new();
+    let mut map = serde_json::Map::new();
 
     let root = hex::encode(list_root);
     let val = hex::encode(val);

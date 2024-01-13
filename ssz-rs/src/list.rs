@@ -12,7 +12,7 @@ use crate::{
     Serializable, SimpleSerialize,
 };
 
-use serde_json::{Map, Value};
+// use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 
 /// A homogenous collection of a variable number of values.
@@ -101,7 +101,7 @@ where
         }
         root_vec
     }
-    fn get_proof(&mut self, idx: usize) -> Map<String, Value> {
+    fn get_proof(&mut self, idx: usize) -> serde_json::Map<String, serde_json::Value> {
         let roots = self.get_hash_tree();
         let zeroes = self.get_zeroes();
 
@@ -164,7 +164,7 @@ where
         // val is the hash root of the actual validator we want to get
         let val = roots[roots_idx].clone();
 
-        let mut map = Map::new();
+        let mut map = serde_json::Map::new();
 
         let root = hex::encode(root);
         let val = hex::encode(val);
