@@ -402,6 +402,7 @@ fn derive_merkle_proof_impl(
                     "this type of struct is currently not supported by this derive macro"
                 ),
             };
+
             let field_count = fields.iter().len();
 
             let impl_by_field = fields.iter().enumerate().map(|(i, f)| match &f.ident {
@@ -455,7 +456,7 @@ fn derive_merkle_proof_impl(
                     root_vec
                 }
 
-                fn get_proof(&mut self, idx: usize) -> Vec<String> {
+                fn get_proof(&mut self, idx: usize) -> Map<String, Value> {
                     let roots = self.get_hash_tree();
                     let mut proof = ssz_rs::__internal::get_list_proof(roots, idx);
 
@@ -543,7 +544,7 @@ fn derive_merkle_proof_impl(
                     }
                 }
 
-                fn get_proof(&mut self, idx: usize) -> Vec<String> {
+                fn get_proof(&mut self, idx: usize) -> Map<String, Value> {
                     match self {
                         #(#get_proof_by_variant)*
                     }

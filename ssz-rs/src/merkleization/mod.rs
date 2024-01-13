@@ -5,6 +5,7 @@ use crate::{
     lib::*,
     ser::{Serialize, SerializeError},
 };
+use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 
 pub use node::Node;
@@ -63,10 +64,10 @@ pub trait MerkleProof {
 
         z_roots
     }
-    fn get_proof(&mut self, idx: usize) -> Vec<String>;
+    fn get_proof(&mut self, idx: usize) -> Map<String, Value>;
 }
 
-pub fn get_list_proof(roots: Vec<Vec<u8>>, idx: usize) -> Vec<String> {
+pub fn get_list_proof(roots: Vec<Vec<u8>>, idx: usize) -> Map<String, Value> {
     let mut idx_to_get = idx.clone();
 
     let n: u8 = (log2(get_power_of_two_ceil(roots.len())) as u8) - 1;
@@ -88,14 +89,20 @@ pub fn get_list_proof(roots: Vec<Vec<u8>>, idx: usize) -> Vec<String> {
     let list_root = roots[1].clone();
 
     let mut proof: Vec<String> = list_proof.iter().map(|p| hex::encode(p)).collect();
-    proof
 
-    // if vec.len() == 1 {
-    //     return proof;
-    // } else {
-    //     proof.append(&mut self[idx_to_get].get_proof(vec[1..].to_vec()));
-    //     return proof;
-    // }
+    let val = roots[curr as usize].clone();
+
+    let mut map = Map::new();
+
+    let root = hex::encode(list_root);
+    let val = hex::encode(val);
+
+    map.insert("directions".to_owned(), list_dir.into());
+    map.insert("val".to_owned(), val.into());
+    map.insert("root_bytes".to_owned(), root.into());
+    map.insert("proof".to_owned(), proof.into());
+
+    map
 }
 
 /// An error encountered during merkleization.

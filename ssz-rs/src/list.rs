@@ -12,7 +12,7 @@ use crate::{
     Serializable, SimpleSerialize,
 };
 
-use serde_json::Map;
+use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 
 /// A homogenous collection of a variable number of values.
@@ -101,7 +101,7 @@ where
         }
         root_vec
     }
-    fn get_proof(&mut self, idx: usize) -> Vec<String> {
+    fn get_proof(&mut self, idx: usize) -> Map<String, Value> {
         let roots = self.get_hash_tree();
         let zeroes = self.get_zeroes();
 
@@ -165,14 +165,17 @@ where
         let val = roots[roots_idx].clone();
 
         let mut map = Map::new();
+
         let root = hex::encode(root);
         let val = hex::encode(val);
-        let mut proof = base_path.iter().map(|p| hex::encode(p)).collect();
+        let mut proof: Vec<String> = base_path.iter().map(|p| hex::encode(p)).collect();
 
-        println!("val: {:?}", val);
-        println!("root: {:?}", root);
+        map.insert("directions".to_owned(), base_dir.into());
+        map.insert("val".to_owned(), val.into());
+        map.insert("root_bytes".to_owned(), root.into());
+        map.insert("proof".to_owned(), proof.into());
 
-        proof
+        map
 
         // if vec.len() == 1 {
         //     return proof;

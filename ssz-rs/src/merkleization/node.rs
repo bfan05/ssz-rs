@@ -5,6 +5,7 @@ use crate::{
     utils::{write_bytes_to_lower_hex, write_bytes_to_lower_hex_display},
 };
 
+use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 
 fn log2(x: usize) -> u32 {
