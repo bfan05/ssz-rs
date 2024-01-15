@@ -416,14 +416,22 @@ fn derive_merkle_proof_impl(
                 },
             });
 
-            // let field_accessors = fields.iter().enumerate().map(|(i, f)| match &f.ident {
-            //     Some(field_name) => quote_spanned! { f.span() =>
-            //         field_vec.push(self.#field_name);
-            //     },
-            //     None => quote_spanned! { f.span() =>
-            //         field_vec.push(self.0);
-            //     },
-            // });
+            let field_accessors = fields.iter().enumerate().map(|(i, field)| {
+                let field_name = match field.ident.as_ref() {
+                    Some(name) => quote! { #name },
+                    None => {
+                        let index = syn::Index::from(i);
+                        quote! { #index }
+                    }
+                };
+
+                quote! {
+                    if index == #i {
+                        get_field_vec.push(&self.#field_name);
+                        //return &self.#field_name as &dyn std::any::Any;
+                    }
+                }
+            });
 
             quote! {
                 fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
@@ -460,6 +468,14 @@ fn derive_merkle_proof_impl(
                     let roots = self.get_hash_tree();
                     let mut proof = ssz_rs::__internal::get_list_proof(roots, idx);
 
+                    let mut index = idx.clone();
+
+                    let mut get_field_vec = Vec::new();
+
+                    #(#field_accessors)*
+                    let field = get_field_vec[0];
+                    println!("field: {:?}", field);
+
                     // if vec.len() == 1 {
                     //     return proof;
                     // } else {
@@ -470,6 +486,11 @@ fn derive_merkle_proof_impl(
                     // }
                     proof
                 }
+
+                // fn get_ith_field(mut &self, index: usize) -> &dyn std::any::Any {
+                //     #(#field_accessors)*
+                //     panic!("Index out of bounds");
+                // }
             }
         }
         // Data::Enum(ref data) => {
@@ -544,7 +565,7 @@ fn derive_merkle_proof_impl(
                     }
                 }
 
-                fn get_proof(&mut self, idx: usize) -> Map<String, Value> {
+                fn get_proof(&mut self, idx: usize) -> serde_json::Map<String, serde_json::Value> {
                     match self {
                         #(#get_proof_by_variant)*
                     }
