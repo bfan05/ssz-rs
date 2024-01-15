@@ -50,7 +50,7 @@ pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
 impl<T, const N: usize> MerkleProof for List<T, N>
 where
     // T: Serializable + Merkleized,
-    T: Serializable + Merkleized + 'static,
+    T: Serializable + Merkleized + MerkleProof,
 {
     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
         let mut len = self.as_ref().len();
@@ -182,18 +182,9 @@ where
             return map;
         } else {
             // Obtain a mutable reference to the field
-            let field = &mut self[idx] as &mut dyn std::any::Any;
-            println!("here");
-
-            if let Some(spec_field) = field.downcast_mut::<&mut dyn MerkleProof>() {
-                println!("here");
-
-                let new_proof = spec_field.get_proof(vec[1..].to_vec());
-                // ... rest of your code, possibly modifying `map` with `new_proof`
-                println!("new_proof: {:?}", new_proof["root_bytes"]);
-
-                return map;
-            }
+            let field = &mut self[idx];
+            let new_proof = field.get_proof(vec[1..].to_vec());
+            println!("new_proof: {:?}", new_proof);
 
             return map;
         }

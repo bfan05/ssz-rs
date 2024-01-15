@@ -484,8 +484,6 @@ fn derive_merkle_proof_impl(
                     if vec.len() == 1 {
                         return proof;
                     } else {
-                        //let mut get_field_vec = Vec::new();
-                        // #(#field_accessors)*
                         let new_proof = {
                             #(#field_accessors else)*
                             {serde_json::Map::new()}
