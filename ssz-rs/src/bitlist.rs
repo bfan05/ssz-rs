@@ -105,7 +105,7 @@ impl<const N: usize> MerkleProof for Bitlist<N> {
         root_vec
     }
 
-    fn get_proof(&mut self, vec: Vec<u64>) -> serde_json::Map<String, serde_json::Value> {
+    fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
         let roots = self.get_hash_tree();
         let zeroes = self.get_zeroes();
 

@@ -103,7 +103,7 @@ where
         root_vec
     }
 
-    fn get_proof(&mut self, idx: Vec<u64>) -> serde_json::Map<String, serde_json::Value> {
+    fn get_proof(&mut self, idx: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
         let roots = self.get_hash_tree();
         let zeroes = self.get_zeroes();
         let idx = idx[0];
