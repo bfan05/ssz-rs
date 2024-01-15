@@ -427,10 +427,10 @@ fn derive_merkle_proof_impl(
 
                 quote! {
                     if idx[0] == #i {
-                        let new_proof = self.#field_name.get_proof(idx[1..].to_vec());
-                        proof.get("directions").unwrap().as_array().unwrap().append(&mut new_proof.get("directions").unwrap().as_array().unwrap());
-                        proof.insert("val".to_owned(), new_proof.get("val").unwrap().as_str().unwrap().into() );
-                        proof.get("proof").unwrap().as_array().unwrap().append(&mut new_proof.get("proof").unwrap().as_array().unwrap());
+                        // let new_proof = self.#field_name.get_proof(idx[1..].to_vec());
+                        // proof.get("directions").unwrap().as_array().unwrap().append(&mut new_proof.get("directions").unwrap().as_array().unwrap());
+                        // proof.insert("val".to_owned(), new_proof.get("val").unwrap().as_str().unwrap().into() );
+                        // proof.get("proof").unwrap().as_array().unwrap().append(&mut new_proof.get("proof").unwrap().as_array().unwrap());
                     }
                 }
             });
