@@ -567,6 +567,7 @@ fn derive_merkle_proof_impl(
 
                 fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
                     match self {
+                        let idx = vec[0];
                         #(#get_proof_by_variant)*
                     }
                 }
