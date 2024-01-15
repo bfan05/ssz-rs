@@ -426,10 +426,12 @@ fn derive_merkle_proof_impl(
                 };
 
                 quote! {
-                    if index == #i {
-                        get_field_vec.push(&self.#field_name as &(dyn std::fmt::Debug + 'static));
-                        //get_field_vec.push(&self.#field_name as &dyn std::any::Any);
-                        //return &self.#field_name as &dyn std::any::Any;
+                    if idx[0] == #i {
+                        let new_proof = self.#field_name.get_proof(idx[1..].to_vec());
+                        proof.get("directions").unwrap().as_array().unwrap().append(&mut new_proof.get("directions").unwrap().as_array().unwrap());
+                        proof.get("val").unwrap().as_str().unwrap().push_str(&mut new_proof.get("val").unwrap().as_str().unwrap());
+                        proof.get("root_bytes").unwrap().as_str().unwrap().push_str(&mut new_proof.get("root_bytes").unwrap().as_str().unwrap());
+                        proof.get("proof").unwrap().as_array().unwrap().append(&mut new_proof.get("proof").unwrap().as_array().unwrap());
                     }
                 }
             });
@@ -465,17 +467,24 @@ fn derive_merkle_proof_impl(
                     root_vec
                 }
 
-                fn get_proof(&mut self, idx: usize) -> serde_json::Map<String, serde_json::Value> {
+                fn get_proof(&mut self, idx: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
                     let roots = self.get_hash_tree();
-                    let mut proof = ssz_rs::__internal::get_list_proof(roots, idx);
+                    // directions, val, root_bytes, proof
+                    let mut proof = ssz_rs::__internal::get_list_proof(roots, idx[0]);
 
-                    let mut index = idx.clone();
+                    // let mut index = idx.clone();
+                    // let mut index = idx[0];
+                    // if idx.len() == 1 {
 
-                    let mut get_field_vec = Vec::new();
+                    // }
+                    // let mut rest_indices = idx[1..];
+                    // let mut get_field_vec = Vec::new();
+                    if idx.len() > 1 {
+                        #(#field_accessors)*
+                    }
 
-                    #(#field_accessors)*
-                    let field = get_field_vec[0];
-                    println!("field: {:?}", field);
+                    // let field = get_field_vec[0];
+                    // println!("field: {:?}", field);
 
                     // if vec.len() == 1 {
                     //     return proof;
