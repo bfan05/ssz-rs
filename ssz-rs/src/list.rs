@@ -176,8 +176,6 @@ where
         map.insert("root_bytes".to_owned(), root.into());
         map.insert("proof".to_owned(), proof.into());
 
-        println!("vec len: {:?}", vec.len());
-
         if vec.len() == 1 {
             return map;
         } else {
