@@ -481,10 +481,10 @@ fn derive_merkle_proof_impl(
                         #(#field_accessors)*
                         println!("here");
 
-                        // Assuming get_field_vec is Vec<&mut dyn Any>
-                        if let Some(mut field) = get_field_vec.get_mut(0) {
-                            println!("here");
-                            // field is &mut dyn Any
+                        println!("field_vec: {:?}", get_field_vec);
+
+                        if let Some(mut field) = get_field_vec.pop() {
+                            // Assuming MyType is a concrete type that implements MerkleProof
                             if let Some(spec_field) = field.downcast_mut::<&mut dyn MerkleProof>() {
                                 println!("here");
                                 let new_proof = spec_field.get_proof(vec[1..].to_vec());
@@ -492,6 +492,18 @@ fn derive_merkle_proof_impl(
                                 return proof;
                             }
                         }
+
+                        // Assuming get_field_vec is Vec<&mut dyn Any>
+                        // if let Some(mut field) = get_field_vec.get_mut(0) {
+                        //     println!("here");
+                        //     // field is &mut dyn Any
+                        //     if let Some(spec_field) = field.downcast_mut::<&mut dyn MerkleProof>() {
+                        //         println!("here");
+                        //         let new_proof = spec_field.get_proof(vec[1..].to_vec());
+                        //         println!("new_proof: {:?}", new_proof["root_bytes"]);
+                        //         return proof;
+                        //     }
+                        // }
 
                         return proof;
                     }
