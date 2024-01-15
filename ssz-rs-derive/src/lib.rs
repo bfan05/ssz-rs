@@ -429,7 +429,8 @@ fn derive_merkle_proof_impl(
                 quote! {
                     if index == #i {
                         //get_field_vec.push(&self.#field_name as &(dyn std::fmt::Debug + 'static));
-                        get_field_vec.push(&mut self.#field_name as &mut dyn std::any::Any);
+                        // get_field_vec.push(&mut self.#field_name as &mut dyn std::any::Any);
+                        get_field_vec.push(&mut self.#field_name);
                         //return &self.#field_name as &dyn std::any::Any;
                     }
                 }
@@ -483,15 +484,15 @@ fn derive_merkle_proof_impl(
 
                         println!("field_vec: {:?}", get_field_vec);
 
-                        if let Some(mut field) = get_field_vec.pop() {
-                            // Assuming MyType is a concrete type that implements MerkleProof
-                            if let Some(spec_field) = field.downcast_mut::<&mut dyn MerkleProof>() {
-                                println!("here");
-                                let new_proof = spec_field.get_proof(vec[1..].to_vec());
-                                println!("new_proof: {:?}", new_proof["root_bytes"]);
-                                return proof;
-                            }
-                        }
+                        // if let Some(mut field) = get_field_vec.pop() {
+                        //     // Assuming MyType is a concrete type that implements MerkleProof
+                        //     if let Some(spec_field) = field.downcast_mut::<&mut dyn MerkleProof>() {
+                        //         println!("here");
+                        //         let new_proof = spec_field.get_proof(vec[1..].to_vec());
+                        //         println!("new_proof: {:?}", new_proof["root_bytes"]);
+                        //         return proof;
+                        //     }
+                        // }
 
                         // Assuming get_field_vec is Vec<&mut dyn Any>
                         // if let Some(mut field) = get_field_vec.get_mut(0) {
