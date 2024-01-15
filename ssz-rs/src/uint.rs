@@ -112,6 +112,20 @@ impl Serialize for U256 {
     }
 }
 
+impl MerkleProof for U256 {
+    fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
+        unimplemented!();
+    }
+
+    fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
+        unimplemented!();
+    }
+
+    fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+        unimplemented!();
+    }
+}
+
 impl Deserialize for U256 {
     fn deserialize(encoding: &[u8]) -> Result<Self, DeserializeError> {
         if encoding.len() < U256_BYTE_COUNT {
