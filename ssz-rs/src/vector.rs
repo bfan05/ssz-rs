@@ -51,7 +51,7 @@ pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
 impl<T, const N: usize> MerkleProof for Vector<T, N>
 where
     // T: Serializable + Merkleized,
-    T: Serializable + Merkleized + MerkleProof,
+    T: Serializable + Merkleized + MerkleProof + serde::ser::Serialize,
 {
     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
         let mut len = self.as_ref().len();
@@ -165,6 +165,7 @@ where
         map.insert("val".to_owned(), val.into());
         map.insert("root_bytes".to_owned(), root.into());
         map.insert("proof".to_owned(), proof.into());
+        map.insert("field_value".to_owned(), serde_json::to_value(&self[idx]).unwrap());
 
         if vec.len() == 1 {
             return map;
