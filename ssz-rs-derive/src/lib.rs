@@ -540,7 +540,7 @@ fn derive_merkle_proof_impl(
                     Fields::Unnamed(..) => {
                         // NOTE: validated to only be `transparent` operation at this point...
                         quote_spanned! { variant.span() =>
-                            Self::#variant_name(value) => value.get_proof(idx),
+                            Self::#variant_name(value) => value.get_proof(vec),
                         }
                     }
                     Fields::Unit => {
@@ -567,7 +567,6 @@ fn derive_merkle_proof_impl(
 
                 fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
                     match self {
-                        let idx = vec[0];
                         #(#get_proof_by_variant)*
                     }
                 }
