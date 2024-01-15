@@ -437,7 +437,7 @@ fn derive_merkle_proof_impl(
 
                         // let new_proof = self.#field_name.get_proof(vec[1..].to_vec());
                         // println!("new_proof: {:?}", new_proof);
-                        &self.#field_name;
+                        self.#field_name.get_proof(vec[1..].to_vec())
                     }
                 }
             });
@@ -486,10 +486,11 @@ fn derive_merkle_proof_impl(
                     } else {
                         //let mut get_field_vec = Vec::new();
                         // #(#field_accessors)*
-                        let mut field = {
-                            #(#field_accessors)*
+                        let new_proof = {
+                            #(#field_accessors else)*
+                            {serde_json::Map::new()}
                         };
-                        println!("field: {:?}", field);
+                        println!("new proof: {:?}", new_proof);
                         println!("here");
 
                         //println!("field_vec: {:?}", get_field_vec);
