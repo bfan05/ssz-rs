@@ -89,19 +89,19 @@ where
     }
 }
 
-// impl<T, const N: usize> MerkleProof for [T; N] {
-//     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
-//         unimplemented!();
-//     }
+impl<T, const N: usize> MerkleProof for [T; N] {
+    fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
+        unimplemented!();
+    }
 
-//     fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
-//         unimplemented!();
-//     }
+    fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
+        unimplemented!();
+    }
 
-//     fn get_proof(&mut self, vec: Vec<usize>) -> Vec<String> {
-//         unimplemented!();
-//     }
-// }
+    fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+        unimplemented!();
+    }
+}
 
 impl<T, const N: usize> SimpleSerialize for [T; N] where T: SimpleSerialize {}
 

@@ -435,7 +435,8 @@ fn derive_merkle_proof_impl(
                         // println!("i: {:?}", i);
                         // get_field_vec.push(&mut self.#field_name);
 
-                        println!("item: {:?}", self.#field_name);
+                        let new_proof = self.#field_name.get_proof(vec[1..].to_vec());
+                        println!("new_proof: {:?}", new_proof);
                         //return &self.#field_name as &dyn std::any::Any;
                     }
                 }
