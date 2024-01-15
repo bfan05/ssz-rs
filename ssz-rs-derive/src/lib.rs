@@ -472,16 +472,21 @@ fn derive_merkle_proof_impl(
                     let mut proof = ssz_rs::__internal::get_list_proof(roots, idx);
                     let mut index = idx.clone();
 
+                    println!("vec len: {:?}", vec.len());
+
                     if vec.len() == 1 {
                         return proof;
                     } else {
                         let mut get_field_vec = Vec::new();
                         #(#field_accessors)*
+                        println!("here");
 
                         // Assuming get_field_vec is Vec<&mut dyn Any>
                         if let Some(mut field) = get_field_vec.get_mut(0) {
+                            println!("here");
                             // field is &mut dyn Any
                             if let Some(spec_field) = field.downcast_mut::<&mut dyn MerkleProof>() {
+                                println!("here");
                                 let new_proof = spec_field.get_proof(vec[1..].to_vec());
                                 println!("new_proof: {:?}", new_proof["root_bytes"]);
                                 return proof;
