@@ -51,7 +51,7 @@ pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
 impl<T, const N: usize> MerkleProof for Vector<T, N>
 where
     // T: Serializable + Merkleized,
-    T: Serializable + Merkleized,
+    T: Serializable + Merkleized + 'static,
 {
     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
         let mut len = self.as_ref().len();
@@ -103,7 +103,8 @@ where
         root_vec
     }
 
-    fn get_proof(&mut self, idx: usize) -> serde_json::Map<String, serde_json::Value> {
+    fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+        let idx = vec[0];
         let roots = self.get_hash_tree();
         let zeroes = self.get_zeroes();
 
@@ -168,14 +169,22 @@ where
         map.insert("root_bytes".to_owned(), root.into());
         map.insert("proof".to_owned(), proof.into());
 
-        map
+        if vec.len() == 1 {
+            return map;
+        } else {
+            // Obtain a mutable reference to the field
+            let field = &mut self[idx] as &mut dyn std::any::Any;
 
-        // if vec.len() == 1 {
-        //     return proof;
-        // } else {
-        //     proof.append(&mut self[idx_to_get].get_proof(vec[1..].to_vec()));
-        //     return proof;
-        // }
+            if let Some(spec_field) = field.downcast_mut::<&mut dyn MerkleProof>() {
+                let new_proof = spec_field.get_proof(vec[1..].to_vec());
+                // ... rest of your code, possibly modifying `map` with `new_proof`
+                println!("new_proof: {:?}", new_proof["root_bytes"]);
+
+                return map;
+            }
+
+            return map;
+        }
     }
 }
 

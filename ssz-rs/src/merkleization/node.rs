@@ -4,6 +4,7 @@ use crate::{
     prelude::*,
     utils::{write_bytes_to_lower_hex, write_bytes_to_lower_hex_display},
 };
+// use ethereum_consensus::{phase0::Validator, ssz::prelude::*};
 
 use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};

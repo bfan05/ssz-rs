@@ -1,6 +1,7 @@
 //! `SimpleSerialize` provides a macro to derive SSZ containers and union types from
 //! native Rust structs and enums.
 //! Refer to the `examples` in the `ssz_rs` crate for a better idea on how to use this derive macro.
+use ethereum_consensus::{phase0::Validator, ssz::prelude::*};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote, quote_spanned};
 use syn::{
@@ -427,8 +428,8 @@ fn derive_merkle_proof_impl(
 
                 quote! {
                     if index == #i {
-                        get_field_vec.push(&self.#field_name as &(dyn std::fmt::Debug + 'static));
-                        //get_field_vec.push(&self.#field_name as &dyn std::any::Any);
+                        //get_field_vec.push(&self.#field_name as &(dyn std::fmt::Debug + 'static));
+                        get_field_vec.push(&mut self.#field_name as &mut dyn std::any::Any);
                         //return &self.#field_name as &dyn std::any::Any;
                     }
                 }
@@ -465,33 +466,31 @@ fn derive_merkle_proof_impl(
                     root_vec
                 }
 
-                fn get_proof(&mut self, idx: usize) -> serde_json::Map<String, serde_json::Value> {
+                fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+                    let idx = vec[0];
                     let roots = self.get_hash_tree();
                     let mut proof = ssz_rs::__internal::get_list_proof(roots, idx);
-
                     let mut index = idx.clone();
 
-                    let mut get_field_vec = Vec::new();
+                    if vec.len() == 1 {
+                        return proof;
+                    } else {
+                        let mut get_field_vec = Vec::new();
+                        #(#field_accessors)*
 
-                    #(#field_accessors)*
-                    let field = get_field_vec[0];
-                    println!("field: {:?}", field);
+                        // Assuming get_field_vec is Vec<&mut dyn Any>
+                        if let Some(mut field) = get_field_vec.get_mut(0) {
+                            // field is &mut dyn Any
+                            if let Some(spec_field) = field.downcast_mut::<&mut dyn MerkleProof>() {
+                                let new_proof = spec_field.get_proof(vec[1..].to_vec());
+                                println!("new_proof: {:?}", new_proof["root_bytes"]);
+                                return proof;
+                            }
+                        }
 
-                    // if vec.len() == 1 {
-                    //     return proof;
-                    // } else {
-                    //     let mut field_vec = Vec::new();
-                    //     #(#field_accessors)*
-                    //     proof.append(&mut field_vec[vec[0]].get_proof(vec[1..].to_vec()));
-                    //     return proof;
-                    // }
-                    proof
+                        return proof;
+                    }
                 }
-
-                // fn get_ith_field(mut &self, index: usize) -> &dyn std::any::Any {
-                //     #(#field_accessors)*
-                //     panic!("Index out of bounds");
-                // }
             }
         }
         // Data::Enum(ref data) => {
@@ -566,7 +565,7 @@ fn derive_merkle_proof_impl(
                     }
                 }
 
-                fn get_proof(&mut self, idx: usize) -> serde_json::Map<String, serde_json::Value> {
+                fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
                     match self {
                         #(#get_proof_by_variant)*
                     }

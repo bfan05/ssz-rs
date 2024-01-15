@@ -64,7 +64,7 @@ pub trait MerkleProof {
 
         z_roots
     }
-    fn get_proof(&mut self, idx: usize) -> serde_json::Map<String, serde_json::Value>;
+    fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value>;
 }
 
 pub fn get_list_proof(
