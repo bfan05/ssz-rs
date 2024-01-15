@@ -183,8 +183,11 @@ where
         } else {
             // Obtain a mutable reference to the field
             let field = &mut self[idx] as &mut dyn std::any::Any;
+            println!("here");
 
             if let Some(spec_field) = field.downcast_mut::<&mut dyn MerkleProof>() {
+                println!("here");
+
                 let new_proof = spec_field.get_proof(vec[1..].to_vec());
                 // ... rest of your code, possibly modifying `map` with `new_proof`
                 println!("new_proof: {:?}", new_proof["root_bytes"]);
