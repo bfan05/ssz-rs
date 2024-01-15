@@ -427,7 +427,8 @@ fn derive_merkle_proof_impl(
 
                 quote! {
                     if index == #i {
-                        get_field_vec.push(&self.#field_name as &dyn std::any::Any);
+                        get_field_vec.push(&self.#field_name as &(dyn std::fmt::Debug + 'static));
+                        //get_field_vec.push(&self.#field_name as &dyn std::any::Any);
                         //return &self.#field_name as &dyn std::any::Any;
                     }
                 }
