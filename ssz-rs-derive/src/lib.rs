@@ -467,7 +467,7 @@ fn derive_merkle_proof_impl(
                     root_vec
                 }
 
-                fn get_proof(&mut self, idx: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+                fn get_proof(&mut self, idx: Vec<u64>) -> serde_json::Map<String, serde_json::Value> {
                     let roots = self.get_hash_tree();
                     // directions, val, root_bytes, proof
                     let mut proof = ssz_rs::__internal::get_list_proof(roots, idx[0]);
@@ -550,7 +550,7 @@ fn derive_merkle_proof_impl(
                     Fields::Unnamed(..) => {
                         // NOTE: validated to only be `transparent` operation at this point...
                         quote_spanned! { variant.span() =>
-                            Self::#variant_name(value) => value.get_proof(idx),
+                            Self::#variant_name(value) => value.get_proof(idx[0]),
                         }
                     }
                     Fields::Unit => {
@@ -575,7 +575,7 @@ fn derive_merkle_proof_impl(
                     }
                 }
 
-                fn get_proof(&mut self, idx: usize) -> serde_json::Map<String, serde_json::Value> {
+                fn get_proof(&mut self, idx: Vec<u64>) -> serde_json::Map<String, serde_json::Value> {
                     match self {
                         #(#get_proof_by_variant)*
                     }

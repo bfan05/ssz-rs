@@ -64,7 +64,7 @@ pub trait MerkleProof {
 
         z_roots
     }
-    fn get_proof(&mut self, idx: usize) -> serde_json::Map<String, serde_json::Value>;
+    fn get_proof(&mut self, idx: Vec<u64>) -> serde_json::Map<String, serde_json::Value>;
 }
 
 pub fn get_list_proof(
@@ -104,6 +104,18 @@ pub fn get_list_proof(
     map.insert("val".to_owned(), val.into());
     map.insert("root_bytes".to_owned(), root.into());
     map.insert("proof".to_owned(), proof.into());
+
+    // let mut newmap = serde_json::Map::new();
+    // newmap.insert("directions".to_owned(), list_dir.into());
+    // newmap.insert("val".to_owned(), val.into());
+    // newmap.insert("root_bytes".to_owned(), root.into());
+    // newmap.insert("proof".to_owned(), proof.into());
+
+    // let cur_vec = map.get("directions").unwrap();
+    // cur_vec.as_array().unwrap().append(&mut newmap.get("directions").unwrap().as_array().unwrap());
+
+    // let cur_val = map.get("val").unwrap();
+    // cur_val.as_str().unwrap().to_owned().push_str(newmap.get("val").unwrap().as_str().unwrap());
 
     map
 }
