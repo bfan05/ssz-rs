@@ -159,10 +159,7 @@ where
 
         let root = hex::encode(root);
         let val = hex::encode(val);
-        let mut proof: Vec<String> = base_path.iter().map(|p| hex::encode(p)).collect();
-
-        // println!("val: {:?}", val);
-        // println!("root: {:?}", root);
+        let proof: Vec<String> = base_path.iter().map(|p| hex::encode(p)).collect();
 
         map.insert("directions".to_owned(), base_dir.into());
         map.insert("val".to_owned(), val.into());

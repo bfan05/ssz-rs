@@ -68,21 +68,6 @@ pub trait MerkleProof {
     fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value>;
 }
 
-// impl<T> MerkleProof for T
-// where
-//     T: Serializable + Merkleized,
-// {
-//     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
-//         unimplemented!()
-//     }
-//     fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
-//         unimplemented!()
-//     }
-//     fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
-//         unimplemented!()
-//     }
-// }
-
 pub fn get_list_proof(
     roots: Vec<Vec<u8>>,
     idx: usize,

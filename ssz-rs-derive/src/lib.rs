@@ -433,6 +433,22 @@ fn derive_merkle_proof_impl(
                 }
             });
 
+            let get_field_value = fields.iter().enumerate().map(|(i, field)| {
+                let field_name = match field.ident.as_ref() {
+                    Some(name) => quote! { #name },
+                    None => {
+                        let index = syn::Index::from(i);
+                        quote! { #index }
+                    }
+                };
+
+                quote! {
+                    if index == #i {
+                        field_value_vec.push(&self.#field_name as &dyn std::fmt::Debug);
+                    }
+                }
+            });
+
             quote! {
                 fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
                     let len = #field_count;
@@ -477,6 +493,10 @@ fn derive_merkle_proof_impl(
                             #(#field_accessors else)*
                             {serde_json::Map::new()}
                         };
+
+                        let mut field_value_vec = Vec::new();
+                        #(#get_field_value)*
+                        println!("field value: {:?}", field_value_vec[0]);
 
                         if let (
                             Some(serde_json::Value::Array(ref mut directions)),
