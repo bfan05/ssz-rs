@@ -435,9 +435,9 @@ fn derive_merkle_proof_impl(
                         // println!("i: {:?}", i);
                         // get_field_vec.push(&mut self.#field_name);
 
-                        let new_proof = self.#field_name.get_proof(vec[1..].to_vec());
-                        println!("new_proof: {:?}", new_proof);
-                        //return &self.#field_name as &dyn std::any::Any;
+                        // let new_proof = self.#field_name.get_proof(vec[1..].to_vec());
+                        // println!("new_proof: {:?}", new_proof);
+                        &self.#field_name;
                     }
                 }
             });
@@ -485,8 +485,11 @@ fn derive_merkle_proof_impl(
                         return proof;
                     } else {
                         //let mut get_field_vec = Vec::new();
-                        #(#field_accessors)*
-                        //let mut field = #(#field_accessors)*;
+                        // #(#field_accessors)*
+                        let mut field = {
+                            #(#field_accessors)*
+                        };
+                        println!("field: {:?}", field);
                         println!("here");
 
                         //println!("field_vec: {:?}", get_field_vec);
@@ -518,9 +521,6 @@ fn derive_merkle_proof_impl(
                 }
             }
         }
-        // Data::Enum(ref data) => {
-        //     unreachable!("data was already validated to exclude union types")
-        // }
         Data::Enum(ref data) => {
             //unimplemented!("enums are currently not supported by this derive macro")
             let get_len_depth_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
