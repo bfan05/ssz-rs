@@ -428,15 +428,6 @@ fn derive_merkle_proof_impl(
 
                 quote! {
                     if index == #i {
-                        //get_field_vec.push(&self.#field_name as &(dyn std::fmt::Debug + 'static));
-                        // get_field_vec.push(&mut self.#field_name as &mut dyn std::any::Any);
-                        // get_field_vec = vec![&mut self.#field_name];
-                        // println!("index: {:?}", index);
-                        // println!("i: {:?}", i);
-                        // get_field_vec.push(&mut self.#field_name);
-
-                        // let new_proof = self.#field_name.get_proof(vec[1..].to_vec());
-                        // println!("new_proof: {:?}", new_proof);
                         self.#field_name.get_proof(vec[1..].to_vec())
                     }
                 }
@@ -489,31 +480,25 @@ fn derive_merkle_proof_impl(
                             {serde_json::Map::new()}
                         };
                         println!("new proof: {:?}", new_proof);
-                        println!("here");
 
-                        //println!("field_vec: {:?}", get_field_vec);
+                        if let (
+                            Some(serde_json::Value::Array(ref mut directions)),
+                            Some(serde_json::Value::Array(new_directions)),
+                        ) = (proof.get_mut("directions"), new_proof.get("directions"))
+                        {
+                            directions.extend(new_directions.clone());
+                        }
 
-                        // if let Some(mut field) = get_field_vec.pop() {
-                        //     // Assuming MyType is a concrete type that implements MerkleProof
-                        //     if let Some(spec_field) = field.downcast_mut::<&mut dyn MerkleProof>() {
-                        //         println!("here");
-                        //         let new_proof = spec_field.get_proof(vec[1..].to_vec());
-                        //         println!("new_proof: {:?}", new_proof["root_bytes"]);
-                        //         return proof;
-                        //     }
-                        // }
+                        proof["val"] = new_proof["val"].clone();
+                        proof["root_bytes"] = new_proof["root_bytes"].clone();
 
-                        // Assuming get_field_vec is Vec<&mut dyn Any>
-                        // if let Some(mut field) = get_field_vec.get_mut(0) {
-                        //     println!("here");
-                        //     // field is &mut dyn Any
-                        //     if let Some(spec_field) = field.downcast_mut::<&mut dyn MerkleProof>() {
-                        //         println!("here");
-                        //         let new_proof = spec_field.get_proof(vec[1..].to_vec());
-                        //         println!("new_proof: {:?}", new_proof["root_bytes"]);
-                        //         return proof;
-                        //     }
-                        // }
+                        if let (
+                            Some(serde_json::Value::Array(ref mut proof_map)),
+                            Some(serde_json::Value::Array(new_proof_map)),
+                        ) = (proof.get_mut("proof"), new_proof.get("proof"))
+                        {
+                            proof_map.extend(new_proof_map.clone());
+                        }
 
                         return proof;
                     }

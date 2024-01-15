@@ -176,6 +176,25 @@ where
             let new_proof = field.get_proof(vec[1..].to_vec());
             println!("new_proof: {:?}", new_proof);
 
+            if let (
+                Some(serde_json::Value::Array(ref mut directions)),
+                Some(serde_json::Value::Array(new_directions)),
+            ) = (map.get_mut("directions"), new_proof.get("directions"))
+            {
+                directions.extend(new_directions.clone());
+            }
+
+            map["val"] = new_proof["val"].clone();
+            map["root_bytes"] = new_proof["root_bytes"].clone();
+
+            if let (
+                Some(serde_json::Value::Array(ref mut proof_map)),
+                Some(serde_json::Value::Array(new_proof_map)),
+            ) = (map.get_mut("proof"), new_proof.get("proof"))
+            {
+                proof_map.extend(new_proof_map.clone());
+            }
+
             return map;
         }
     }
