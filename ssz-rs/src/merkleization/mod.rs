@@ -114,8 +114,12 @@ pub fn get_list_proof(
     // let cur_vec = map.get("directions").unwrap();
     // cur_vec.as_array().unwrap().append(&mut newmap.get("directions").unwrap().as_array().unwrap());
 
-    // let cur_val = map.get("val").unwrap();
-    // cur_val.as_str().unwrap().to_owned().push_str(newmap.get("val").unwrap().as_str().unwrap());
+    // let mut cur_val = map.get("val").unwrap().as_str().unwrap().to_owned();
+    // let new_val = newmap.get("val").unwrap().as_str().unwrap();
+    // cur_val.push_str(new_val);
+    // map.insert("val".to_owned(), cur_val.into());
+
+    // let slice_to_val_str: &str = cur_val.as_str().unwrap();
 
     map
 }

@@ -429,8 +429,14 @@ fn derive_merkle_proof_impl(
                     if idx[0] == #i {
                         let new_proof = self.#field_name.get_proof(idx[1..].to_vec());
                         proof.get("directions").unwrap().as_array().unwrap().append(&mut new_proof.get("directions").unwrap().as_array().unwrap());
-                        proof.get("val").unwrap().as_str().unwrap().push_str(&mut new_proof.get("val").unwrap().as_str().unwrap());
-                        proof.get("root_bytes").unwrap().as_str().unwrap().push_str(&mut new_proof.get("root_bytes").unwrap().as_str().unwrap());
+
+                        // proof.get("val").unwrap().as_str().unwrap().push_str(&mut new_proof.get("val").unwrap().as_str().unwrap());
+
+                        let mut cur_val = proof.get("val").unwrap().as_str().unwrap().to_owned();
+                        let new_val = new_proof.get("val").unwrap().as_str().unwrap();
+                        cur_val.push_str(new_val);
+                        proof.insert("val".to_owned(), cur_val.into());
+                        // proof.get("root_bytes").unwrap().as_str().unwrap().push_str(&mut new_proof.get("root_bytes").unwrap().as_str().unwrap());
                         proof.get("proof").unwrap().as_array().unwrap().append(&mut new_proof.get("proof").unwrap().as_array().unwrap());
                     }
                 }
