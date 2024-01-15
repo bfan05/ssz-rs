@@ -1,7 +1,7 @@
 //! `SimpleSerialize` provides a macro to derive SSZ containers and union types from
 //! native Rust structs and enums.
 //! Refer to the `examples` in the `ssz_rs` crate for a better idea on how to use this derive macro.
-use ethereum_consensus::{phase0::Validator, ssz::prelude::*};
+// use ethereum_consensus::{phase0::Validator, ssz::prelude::*};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote, quote_spanned};
 use syn::{
@@ -848,35 +848,6 @@ pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let simple_serialize_impl = derive_simple_serialize_impl(name, generics);
 
     let merkle_proof_impl = derive_merkle_proof_impl(data, name, generics, helper_attr);
-
-    // let gen_func = quote! {
-    //     use sha2::{Digest, Sha256};
-
-    //     fn log2(x: usize) -> u32 {
-    //         if x == 0 {
-    //             0
-    //         } else if x.is_power_of_two() {
-    //             1usize.leading_zeros() - x.leading_zeros()
-    //         } else {
-    //             0usize.leading_zeros() - x.leading_zeros()
-    //         }
-    //     }
-
-    //     fn get_power_of_two_ceil(x: usize) -> usize {
-    //         match x {
-    //             x if x <= 1 => 1,
-    //             2 => 2,
-    //             x => 2 * get_power_of_two_ceil((x + 1) / 2),
-    //         }
-    //     }
-
-    //     pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; 32] {
-    //         let mut hasher = Sha256::new();
-    //         hasher.update(bytes.as_ref());
-    //         let output = hasher.finalize();
-    //         output.into()
-    //     }
-    // };
 
     let expansion = quote! {
         #serializable_impl

@@ -18,7 +18,7 @@ syn = "1.0"
 quote = "1.0"
 proc-macro2 = "1.0"
 sha2 = "0.9.6"
-ethereum-consensus = { git = "https://github.com/bfan05/ethereum-consensus", branch = "new_develop", package = "ethereum-consensus" }
+# ethereum-consensus = { git = "https://github.com/bfan05/ethereum-consensus", branch = "new_develop", package = "ethereum-consensus" }
 
 [dev-dependencies]
 ssz_rs = { path = "../ssz-rs" }
