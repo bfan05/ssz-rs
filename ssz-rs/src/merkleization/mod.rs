@@ -105,6 +105,18 @@ pub fn get_list_proof(
     map.insert("root_bytes".to_owned(), root.into());
     map.insert("proof".to_owned(), proof.into());
 
+    // let new_proof = serde_json::Map::new();
+    // // let directions = new_proof.get("directions").unwrap().as_array().unwrap();
+    // let mut directions = new_proof.get("directions").unwrap().as_array().unwrap();
+    // map.get("directions").unwrap().as_array().unwrap().append(&mut directions);
+    // // let new_val = new_proof.get("val").unwrap().as_str().unwrap().into();
+    // map.insert("val".to_owned(), new_proof.get("val").unwrap().as_str().unwrap().into());
+    // map.get("proof")
+    //     .unwrap()
+    //     .as_array()
+    //     .unwrap()
+    //     .append(&new_proof.get("proof").unwrap().as_array().unwrap());
+
     // let mut newmap = serde_json::Map::new();
     // newmap.insert("directions".to_owned(), list_dir.into());
     // newmap.insert("val".to_owned(), val.into());
