@@ -1,7 +1,7 @@
 use crate::{
     de::{Deserialize, DeserializeError},
     lib::*,
-    merkleization::{MerkleizationError, Merkleized, Node},
+    merkleization::{MerkleProof, MerkleizationError, Merkleized, Node},
     ser::{Serialize, SerializeError},
     Serializable, SimpleSerialize,
 };
@@ -13,6 +13,20 @@ impl Serializable for bool {
 
     fn size_hint() -> usize {
         1
+    }
+}
+
+impl MerkleProof for bool {
+    fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
+        unimplemented!();
+    }
+
+    fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
+        unimplemented!();
+    }
+
+    fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+        unimplemented!();
     }
 }
 

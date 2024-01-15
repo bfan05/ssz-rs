@@ -192,6 +192,20 @@ pub struct Bitvector<const N: usize>(BitvectorInner);
 //     }
 // }
 
+impl<const N: usize> MerkleProof for Bitvector<N> {
+    fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
+        unimplemented!();
+    }
+
+    fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
+        unimplemented!();
+    }
+
+    fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+        unimplemented!();
+    }
+}
+
 impl<const N: usize> fmt::Debug for Bitvector<N> {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(f, "Bitvector<{N}>[")?;
