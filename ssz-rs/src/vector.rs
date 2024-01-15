@@ -174,7 +174,6 @@ where
         } else {
             let field = &mut self[idx];
             let new_proof = field.get_proof(vec[1..].to_vec());
-            println!("new_proof: {:?}", new_proof);
 
             if let (
                 Some(serde_json::Value::Array(ref mut directions)),

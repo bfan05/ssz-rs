@@ -470,8 +470,6 @@ fn derive_merkle_proof_impl(
                     let mut proof = ssz_rs::__internal::get_list_proof(roots, idx);
                     let mut index = idx.clone();
 
-                    println!("vec len: {:?}", vec.len());
-
                     if vec.len() == 1 {
                         return proof;
                     } else {
@@ -479,7 +477,6 @@ fn derive_merkle_proof_impl(
                             #(#field_accessors else)*
                             {serde_json::Map::new()}
                         };
-                        println!("new proof: {:?}", new_proof);
 
                         if let (
                             Some(serde_json::Value::Array(ref mut directions)),
