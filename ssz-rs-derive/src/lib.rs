@@ -430,7 +430,12 @@ fn derive_merkle_proof_impl(
                     if index == #i {
                         //get_field_vec.push(&self.#field_name as &(dyn std::fmt::Debug + 'static));
                         // get_field_vec.push(&mut self.#field_name as &mut dyn std::any::Any);
-                        get_field_vec.push(&mut self.#field_name);
+                        // get_field_vec = vec![&mut self.#field_name];
+                        // println!("index: {:?}", index);
+                        // println!("i: {:?}", i);
+                        // get_field_vec.push(&mut self.#field_name);
+
+                        println!("item: {:?}", self.#field_name);
                         //return &self.#field_name as &dyn std::any::Any;
                     }
                 }
@@ -478,11 +483,12 @@ fn derive_merkle_proof_impl(
                     if vec.len() == 1 {
                         return proof;
                     } else {
-                        let mut get_field_vec = Vec::new();
+                        //let mut get_field_vec = Vec::new();
                         #(#field_accessors)*
+                        //let mut field = #(#field_accessors)*;
                         println!("here");
 
-                        println!("field_vec: {:?}", get_field_vec);
+                        //println!("field_vec: {:?}", get_field_vec);
 
                         // if let Some(mut field) = get_field_vec.pop() {
                         //     // Assuming MyType is a concrete type that implements MerkleProof
