@@ -1,7 +1,7 @@
 use crate::{
     de::{Deserialize, DeserializeError},
     lib::*,
-    merkleization::{pack_bytes, MerkleizationError, Merkleized, Node},
+    merkleization::{pack_bytes, MerkleProof, MerkleizationError, Merkleized, Node},
     ser::{Serialize, SerializeError},
     Serializable, SimpleSerialize, BITS_PER_BYTE,
 };
@@ -37,13 +37,13 @@ macro_rules! define_uint {
                     return Err(DeserializeError::ExpectedFurtherInput {
                         provided: encoding.len(),
                         expected: byte_size,
-                    })
+                    });
                 }
                 if encoding.len() > byte_size {
                     return Err(DeserializeError::AdditionalInput {
                         provided: encoding.len(),
                         expected: byte_size,
-                    })
+                    });
                 }
 
                 // SAFETY: index is safe because encoding.len() has been checked above; qed
@@ -62,6 +62,20 @@ macro_rules! define_uint {
 
             fn is_composite_type() -> bool {
                 false
+            }
+        }
+
+        impl MerkleProof for $uint {
+            fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
+                unimplemented!();
+            }
+
+            fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
+                unimplemented!();
+            }
+
+            fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+                unimplemented!();
             }
         }
 
@@ -104,13 +118,13 @@ impl Deserialize for U256 {
             return Err(DeserializeError::ExpectedFurtherInput {
                 provided: encoding.len(),
                 expected: U256_BYTE_COUNT,
-            })
+            });
         }
         if encoding.len() > U256_BYTE_COUNT {
             return Err(DeserializeError::AdditionalInput {
                 provided: encoding.len(),
                 expected: U256_BYTE_COUNT,
-            })
+            });
         }
 
         // SAFETY: index is safe because encoding.len() == byte_size; qed
