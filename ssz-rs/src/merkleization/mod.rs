@@ -4,7 +4,6 @@ mod proofs;
 use crate::{
     lib::*,
     ser::{Serialize, SerializeError},
-    Serializable,
 };
 // use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
@@ -46,7 +45,7 @@ pub fn get_power_of_two_ceil(x: usize) -> usize {
 }
 
 pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
-    let mut hasher = Sha256::new();
+    let mut hasher = sha2::Sha256::new();
     hasher.update(bytes.as_ref());
     let output = hasher.finalize();
     output.into()
@@ -68,8 +67,7 @@ pub trait MerkleProof {
     fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value>;
 }
 
-// should rename
-pub fn get_list_proof(
+pub fn get_proof_into_idx(
     roots: Vec<Vec<u8>>,
     idx: usize,
 ) -> serde_json::Map<String, serde_json::Value> {
@@ -363,7 +361,6 @@ pub(crate) fn elements_to_chunks<'a, T: Merkleized + 'a>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate as ssz_rs;
     use crate::prelude::*;
 
     macro_rules! hex {

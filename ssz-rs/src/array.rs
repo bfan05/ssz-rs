@@ -98,7 +98,7 @@ impl<T, const N: usize> MerkleProof for [T; N] {
         unimplemented!();
     }
 
-    fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+    fn get_proof(&mut self, _vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
         unimplemented!();
     }
 }

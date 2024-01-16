@@ -181,6 +181,7 @@ where
         map.insert("val".to_owned(), val.into());
         map.insert("root_bytes".to_owned(), root.into());
         map.insert("proof".to_owned(), proof.into());
+
         map.insert("field_value".to_owned(), serde_json::to_value(&self[idx]).unwrap());
 
         map.insert("list_len_ind".to_owned(), list_len_ind.into());

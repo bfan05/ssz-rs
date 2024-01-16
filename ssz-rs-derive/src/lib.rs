@@ -388,12 +388,7 @@ fn derive_merkleization_impl(
     }
 }
 
-fn derive_merkle_proof_impl(
-    data: &Data,
-    name: &Ident,
-    generics: &Generics,
-    helper_attr: Option<&HelperAttr>,
-) -> TokenStream {
+fn derive_merkle_proof_impl(data: &Data, name: &Ident, generics: &Generics) -> TokenStream {
     let method = match data {
         Data::Struct(ref data) => {
             let fields = match data.fields {
@@ -406,7 +401,7 @@ fn derive_merkle_proof_impl(
 
             let field_count = fields.iter().len();
 
-            let impl_by_field = fields.iter().enumerate().map(|(i, f)| match &f.ident {
+            let impl_by_field = fields.iter().enumerate().map(|(_i, f)| match &f.ident {
                 Some(field_name) => quote_spanned! { f.span() =>
                     let chunk = self.#field_name.hash_tree_root();
                     root_vec.push(chunk.as_ref().unwrap().to_vec());
@@ -452,8 +447,8 @@ fn derive_merkle_proof_impl(
             quote! {
                 fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
                     let len = #field_count;
-                    let mut tree_depth = get_power_of_two_ceil(len) as usize;
-                    tree_depth = log2(tree_depth) as usize;
+                    let mut tree_depth = ssz_rs::__internal::get_power_of_two_ceil(len) as usize;
+                    tree_depth = ssz_rs::__internal::log2(tree_depth) as usize;
                     (len, tree_depth)
                 }
 
@@ -473,7 +468,7 @@ fn derive_merkle_proof_impl(
                         let idx = pow2 - i;
                         let mut root_concat = root_vec[2 * idx].clone();
                         root_concat.append(&mut root_vec[2 * idx + 1].clone());
-                        let new_root = sha256(root_concat).to_vec();
+                        let new_root = ssz_rs::__internal::sha256(root_concat).to_vec();
                         root_vec[idx] = new_root;
                     }
 
@@ -483,14 +478,13 @@ fn derive_merkle_proof_impl(
                 fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
                     let idx = vec[0];
                     let roots = self.get_hash_tree();
-                    let mut proof = ssz_rs::__internal::get_list_proof(roots, idx);
+                    let mut proof = ssz_rs::__internal::get_proof_into_idx(roots, idx);
                     let mut index = idx.clone();
 
                     let field_value = {
                         #(#get_field_value else)*
                         {serde_json::to_value("").unwrap()}
                     };
-                    // println!("field_value: {:?}", field_value);
 
                     proof.insert("field_value".to_owned(), serde_json::to_value(&field_value).unwrap());
 
@@ -511,7 +505,6 @@ fn derive_merkle_proof_impl(
                         }
 
                         proof["val"] = new_proof["val"].clone();
-                        // proof["root_bytes"] = new_proof["root_bytes"].clone();
                         proof["field_value"] = new_proof["field_value"].clone();
 
                         if let (
@@ -545,7 +538,7 @@ fn derive_merkle_proof_impl(
         }
         Data::Enum(ref data) => {
             //unimplemented!("enums are currently not supported by this derive macro")
-            let get_len_depth_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
+            let get_len_depth_by_variant = data.variants.iter().enumerate().map(|(_i, variant)| {
                 let variant_name = &variant.ident;
                 match &variant.fields {
                     Fields::Unnamed(..) => {
@@ -563,7 +556,7 @@ fn derive_merkle_proof_impl(
                 }
             });
 
-            let get_hash_tree_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
+            let get_hash_tree_by_variant = data.variants.iter().enumerate().map(|(_i, variant)| {
                 let variant_name = &variant.ident;
                 match &variant.fields {
                     Fields::Unnamed(..) => {
@@ -581,7 +574,7 @@ fn derive_merkle_proof_impl(
                 }
             });
 
-            let get_proof_by_variant = data.variants.iter().enumerate().map(|(i, variant)| {
+            let get_proof_by_variant = data.variants.iter().enumerate().map(|(_i, variant)| {
                 let variant_name = &variant.ident;
                 match &variant.fields {
                     Fields::Unnamed(..) => {
@@ -868,12 +861,11 @@ pub fn derive_merkle_proof(input: proc_macro::TokenStream) -> proc_macro::TokenS
     let data = &input.data;
     let helper_attrs = extract_helper_attrs(&input);
     validate_derive_input(data, &helper_attrs);
-    let helper_attr = helper_attrs.first();
 
     let name = &input.ident;
     let generics = &input.generics;
 
-    let expansion = derive_merkle_proof_impl(data, name, generics, helper_attr);
+    let expansion = derive_merkle_proof_impl(data, name, generics);
     proc_macro::TokenStream::from(expansion)
 }
 
@@ -894,7 +886,7 @@ pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     let simple_serialize_impl = derive_simple_serialize_impl(name, generics);
 
-    let merkle_proof_impl = derive_merkle_proof_impl(data, name, generics, helper_attr);
+    let merkle_proof_impl = derive_merkle_proof_impl(data, name, generics);
 
     let expansion = quote! {
         #serializable_impl

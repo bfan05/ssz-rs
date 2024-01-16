@@ -4,7 +4,6 @@ use crate::{
     lib::*,
     merkleization::{
         merkleize, pack_bytes, MerkleProof, MerkleizationError, Merkleized, Node, BITS_PER_CHUNK,
-        BYTES_PER_CHUNK, NUM_BYTES_TO_SQUEEZE,
     },
     ser::{Serialize, SerializeError},
     Serializable, SimpleSerialize,
@@ -13,9 +12,6 @@ use bitvec::{
     field::BitField,
     prelude::{BitVec, Lsb0},
 };
-
-use serde_json::Map;
-use sha2::{Digest, Sha256};
 
 const BITS_PER_BYTE: usize = crate::BITS_PER_BYTE as usize;
 
@@ -201,7 +197,7 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
         unimplemented!();
     }
 
-    fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+    fn get_proof(&mut self, _vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
         unimplemented!();
     }
 }

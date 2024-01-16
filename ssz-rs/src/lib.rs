@@ -139,7 +139,9 @@ pub mod __internal {
     // exported for derive macro to avoid code duplication...
     pub use crate::{
         de::ContainerDeserializer,
-        merkleization::{get_list_proof, merkleize, mix_in_selector},
+        merkleization::{
+            get_power_of_two_ceil, get_proof_into_idx, log2, merkleize, mix_in_selector, sha256,
+        },
         ser::Serializer,
     };
 }

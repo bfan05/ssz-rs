@@ -74,7 +74,10 @@ macro_rules! define_uint {
                 unimplemented!();
             }
 
-            fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+            fn get_proof(
+                &mut self,
+                _vec: Vec<usize>,
+            ) -> serde_json::Map<String, serde_json::Value> {
                 unimplemented!();
             }
         }
@@ -121,7 +124,7 @@ impl MerkleProof for U256 {
         unimplemented!();
     }
 
-    fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+    fn get_proof(&mut self, _vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
         unimplemented!();
     }
 }
