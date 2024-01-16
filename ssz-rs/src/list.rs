@@ -127,6 +127,12 @@ where
 
         base_path[0] = len_bytes;
         let mut base_dir = vec![0; base_len + 1];
+
+        let mut list_len_ind = vec![0; total_depth + 1];
+        list_len_ind[0] = 1;
+        let mut list_item_ind = vec![0; total_depth + 1];
+        list_item_ind[total_depth] = 1;
+
         let mut root = roots[1].clone();
         for i in 0..base_len {
             // base_path[base_len - i] contains the zero hash along the path
@@ -177,6 +183,9 @@ where
         map.insert("proof".to_owned(), proof.into());
         map.insert("field_value".to_owned(), serde_json::to_value(&self[idx]).unwrap());
 
+        map.insert("list_len_ind".to_owned(), list_len_ind.into());
+        map.insert("list_item_ind".to_owned(), list_item_ind.into());
+
         if vec.len() == 1 {
             return map;
         } else {
@@ -202,6 +211,22 @@ where
             ) = (map.get_mut("proof"), new_proof.get("proof"))
             {
                 proof_map.extend(new_proof_map.clone());
+            }
+
+            if let (
+                Some(serde_json::Value::Array(ref mut list_len_ind_vec)),
+                Some(serde_json::Value::Array(list_len_ind_vec_new)),
+            ) = (map.get_mut("list_len_ind"), new_proof.get("list_len_ind"))
+            {
+                list_len_ind_vec.extend(list_len_ind_vec_new.clone());
+            }
+
+            if let (
+                Some(serde_json::Value::Array(ref mut list_item_ind_vec)),
+                Some(serde_json::Value::Array(list_item_ind_vec_new)),
+            ) = (map.get_mut("list_item_ind"), new_proof.get("list_item_ind"))
+            {
+                list_item_ind_vec.extend(list_item_ind_vec_new.clone());
             }
 
             return map;

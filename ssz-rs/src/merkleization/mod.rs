@@ -68,6 +68,7 @@ pub trait MerkleProof {
     fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value>;
 }
 
+// should rename
 pub fn get_list_proof(
     roots: Vec<Vec<u8>>,
     idx: usize,

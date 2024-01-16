@@ -122,6 +122,9 @@ where
         let mut base_path = vec![vec![0; 32]; base_len];
         let mut base_dir = vec![0; base_len];
 
+        let mut list_len_ind = vec![0; total_depth];
+        let mut list_item_ind = vec![0; total_depth];
+
         let mut root = roots[1].clone();
         for i in 1..(base_len + 1) {
             // base_path[base_len - i] contains the zero hash along the path
@@ -166,6 +169,9 @@ where
         map.insert("root_bytes".to_owned(), root.into());
         map.insert("proof".to_owned(), proof.into());
         map.insert("field_value".to_owned(), serde_json::to_value(&self[idx]).unwrap());
+
+        map.insert("list_len_ind".to_owned(), list_len_ind.into());
+        map.insert("list_item_ind".to_owned(), list_item_ind.into());
 
         if vec.len() == 1 {
             return map;
