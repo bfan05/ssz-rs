@@ -492,7 +492,7 @@ fn derive_merkle_proof_impl(
                     };
                     println!("field_value: {:?}", field_value);
 
-                    proof.insert("field_value".to_owned(), serde_json::to_value(&field_value).unwrap().into());
+                    proof.insert("field_value".to_owned(), serde_json::to_value(&field_value).unwrap());
 
                     if vec.len() == 1 {
                         return proof;
