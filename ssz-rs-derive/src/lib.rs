@@ -506,6 +506,7 @@ fn derive_merkle_proof_impl(data: &Data, name: &Ident, generics: &Generics) -> T
 
                         proof["val"] = new_proof["val"].clone();
                         proof["field_value"] = new_proof["field_value"].clone();
+                        println!("new_field_value: {:?}", new_proof["field_value"]);
 
                         if let (
                             Some(serde_json::Value::Array(ref mut proof_map)),

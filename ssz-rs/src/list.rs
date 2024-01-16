@@ -183,7 +183,6 @@ where
         map.insert("proof".to_owned(), proof.into());
 
         map.insert("field_value".to_owned(), serde_json::to_value(&self[idx]).unwrap());
-        println!("val: {:?}", self[idx]);
 
         map.insert("list_len_ind".to_owned(), list_len_ind.into());
         map.insert("list_item_ind".to_owned(), list_item_ind.into());
@@ -204,7 +203,6 @@ where
             }
 
             map["val"] = new_proof["val"].clone();
-            // map["root_bytes"] = new_proof["root_bytes"].clone();
             map["field_value"] = new_proof["field_value"].clone();
 
             if let (
