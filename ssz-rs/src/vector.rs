@@ -164,6 +164,9 @@ where
         let val = hex::encode(val);
         let proof: Vec<String> = base_path.iter().map(|p| hex::encode(p)).collect();
 
+        println!("list_len_ind: {:?}", list_len_ind);
+        println!("list_item_ind: {:?}", list_item_ind);
+
         map.insert("directions".to_owned(), base_dir.into());
         map.insert("val".to_owned(), val.into());
         map.insert("root_bytes".to_owned(), root.into());
