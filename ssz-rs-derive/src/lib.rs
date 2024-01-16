@@ -490,7 +490,7 @@ fn derive_merkle_proof_impl(
                         #(#get_field_value else)*
                         {serde_json::to_value("").unwrap()}
                     };
-                    // println!("field_value: {:?}", field_value);
+                    println!("field_value: {:?}", field_value);
 
                     proof.insert("field_value".to_owned(), serde_json::to_value(&field_value).unwrap().into());
 
