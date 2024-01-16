@@ -122,8 +122,8 @@ where
         let mut base_path = vec![vec![0; 32]; base_len];
         let mut base_dir = vec![0; base_len];
 
-        let mut list_len_ind = vec![0; total_depth];
-        let mut list_item_ind = vec![0; total_depth];
+        let list_len_ind = vec![0; total_depth];
+        let list_item_ind = vec![0; total_depth];
 
         let mut root = roots[1].clone();
         for i in 1..(base_len + 1) {
