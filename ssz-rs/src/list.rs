@@ -50,7 +50,7 @@ pub fn sha256<T: AsRef<[u8]>>(bytes: T) -> [u8; NUM_BYTES_TO_SQUEEZE] {
 impl<T, const N: usize> MerkleProof for List<T, N>
 where
     // T: Serializable + Merkleized,
-    T: Serializable + Merkleized + MerkleProof + serde::ser::Serialize,
+    T: Serializable + Merkleized + MerkleProof + serde::ser::Serialize + Debug,
 {
     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
         let mut len = self.as_ref().len();
@@ -183,6 +183,7 @@ where
         map.insert("proof".to_owned(), proof.into());
 
         map.insert("field_value".to_owned(), serde_json::to_value(&self[idx]).unwrap());
+        println!("val: {:?}", self[idx]);
 
         map.insert("list_len_ind".to_owned(), list_len_ind.into());
         map.insert("list_item_ind".to_owned(), list_item_ind.into());
