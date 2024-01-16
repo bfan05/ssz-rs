@@ -444,7 +444,7 @@ fn derive_merkle_proof_impl(
 
                 quote! {
                     if index == #i {
-                        serde_json::to_value(self.#field_name).unwrap()
+                        serde_json::to_value(&self.#field_name).unwrap()
                     }
                 }
             });
