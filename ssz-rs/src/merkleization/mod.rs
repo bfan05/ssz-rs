@@ -92,7 +92,7 @@ pub fn get_list_proof(
     let list_dir: Vec<u8> = dir;
     let list_root = roots[1].clone();
 
-    let mut proof: Vec<String> = list_proof.iter().map(|p| hex::encode(p)).collect();
+    let proof: Vec<String> = list_proof.iter().map(|p| hex::encode(p)).collect();
 
     let val = roots[curr as usize].clone();
 
