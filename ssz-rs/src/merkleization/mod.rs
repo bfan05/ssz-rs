@@ -93,6 +93,9 @@ pub fn get_list_proof(
     let list_dir: Vec<u8> = dir;
     let list_root = roots[1].clone();
 
+    let list_len_ind = vec![0; n as usize];
+    let list_item_ind = vec![0; n as usize];
+
     let proof: Vec<String> = list_proof.iter().map(|p| hex::encode(p)).collect();
 
     let val = roots[curr as usize].clone();
@@ -106,6 +109,9 @@ pub fn get_list_proof(
     map.insert("val".to_owned(), val.into());
     map.insert("root_bytes".to_owned(), root.into());
     map.insert("proof".to_owned(), proof.into());
+
+    map.insert("list_len_ind".to_owned(), list_len_ind.into());
+    map.insert("list_item_ind".to_owned(), list_item_ind.into());
 
     map
 }

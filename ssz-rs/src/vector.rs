@@ -199,6 +199,22 @@ where
                 proof_map.extend(new_proof_map.clone());
             }
 
+            if let (
+                Some(serde_json::Value::Array(ref mut list_len_ind_vec)),
+                Some(serde_json::Value::Array(list_len_ind_vec_new)),
+            ) = (map.get_mut("list_len_ind"), new_proof.get("list_len_ind"))
+            {
+                list_len_ind_vec.extend(list_len_ind_vec_new.clone());
+            }
+
+            if let (
+                Some(serde_json::Value::Array(ref mut list_item_ind_vec)),
+                Some(serde_json::Value::Array(list_item_ind_vec_new)),
+            ) = (map.get_mut("list_item_ind"), new_proof.get("list_item_ind"))
+            {
+                list_item_ind_vec.extend(list_item_ind_vec_new.clone());
+            }
+
             return map;
         }
     }
