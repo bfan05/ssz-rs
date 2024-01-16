@@ -511,7 +511,7 @@ fn derive_merkle_proof_impl(
                         }
 
                         proof["val"] = new_proof["val"].clone();
-                        proof["root_bytes"] = new_proof["root_bytes"].clone();
+                        // proof["root_bytes"] = new_proof["root_bytes"].clone();
                         proof["field_value"] = new_proof["field_value"].clone();
 
                         if let (

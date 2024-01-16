@@ -193,7 +193,7 @@ where
             }
 
             map["val"] = new_proof["val"].clone();
-            map["root_bytes"] = new_proof["root_bytes"].clone();
+            // map["root_bytes"] = new_proof["root_bytes"].clone();
             map["field_value"] = new_proof["field_value"].clone();
 
             if let (
