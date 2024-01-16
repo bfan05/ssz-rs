@@ -96,9 +96,6 @@ pub fn get_list_proof(
     let list_len_ind = vec![0; n as usize];
     let list_item_ind = vec![0; n as usize];
 
-    println!("list_len_ind: {:?}", list_len_ind);
-    println!("list_item_ind: {:?}", list_item_ind);
-
     let proof: Vec<String> = list_proof.iter().map(|p| hex::encode(p)).collect();
 
     let val = roots[curr as usize].clone();

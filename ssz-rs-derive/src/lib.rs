@@ -495,7 +495,6 @@ fn derive_merkle_proof_impl(
                     proof.insert("field_value".to_owned(), serde_json::to_value(&field_value).unwrap());
 
                     if vec.len() == 1 {
-                        println!("proof: {:?}", proof);
                         return proof;
                     } else {
                         let new_proof = {
@@ -539,7 +538,6 @@ fn derive_merkle_proof_impl(
                             list_item_ind_vec.extend(list_item_ind_vec_new.clone());
                         }
 
-                        println!("proof: {:?}", proof);
                         return proof;
                     }
                 }
