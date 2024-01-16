@@ -486,14 +486,14 @@ fn derive_merkle_proof_impl(
                     let mut proof = ssz_rs::__internal::get_list_proof(roots, idx);
                     let mut index = idx.clone();
 
+                    let field_value = {
+                        #(#get_field_value else)*
+                        {serde_json::to_value("").unwrap()}
+                    };
+
+                    proof.insert("field_value".to_owned(), serde_json::to_value(&field_value).unwrap().into());
+
                     if vec.len() == 1 {
-                        let field_value = {
-                            #(#get_field_value else)*
-                            {serde_json::to_value("").unwrap()}
-                        };
-
-                        proof.insert("field_value".to_owned(), serde_json::to_value(&field_value).unwrap().into());
-
                         return proof;
                     } else {
                         let new_proof = {
@@ -511,7 +511,7 @@ fn derive_merkle_proof_impl(
 
                         proof["val"] = new_proof["val"].clone();
                         proof["root_bytes"] = new_proof["root_bytes"].clone();
-                        proof["field_value"] = new_proof["root_bytes"].clone();
+                        proof["field_value"] = new_proof["field_value"].clone();
 
                         if let (
                             Some(serde_json::Value::Array(ref mut proof_map)),
