@@ -182,12 +182,11 @@ where
         map.insert("root_bytes".to_owned(), root.into());
         map.insert("proof".to_owned(), proof.into());
 
-        map.insert("field_value".to_owned(), serde_json::to_value(&self[idx]).unwrap());
-
         map.insert("list_len_ind".to_owned(), list_len_ind.into());
         map.insert("list_item_ind".to_owned(), list_item_ind.into());
 
         if vec.len() == 1 {
+            map.insert("field_value".to_owned(), serde_json::to_value(&self[idx]).unwrap());
             return map;
         } else {
             // Obtain a mutable reference to the field
@@ -203,7 +202,7 @@ where
             }
 
             map["val"] = new_proof["val"].clone();
-            map["field_value"] = new_proof["field_value"].clone();
+            map.insert("field_value".to_owned(), new_proof["field_value"].clone());
 
             if let (
                 Some(serde_json::Value::Array(ref mut proof_map)),
