@@ -110,6 +110,9 @@ where
 
         let scale = get_power_of_two_ceil(self.as_ref().len() / len);
 
+        let element_size = BYTES_PER_CHUNK / scale;
+        let bytes_idx = vec![(idx % scale) * element_size, ((idx % scale) + 1) * element_size];
+
         let total_depth = get_power_of_two_ceil(N / scale);
         let total_depth = log2(total_depth) as usize;
 
@@ -181,6 +184,7 @@ where
         map.insert("val".to_owned(), val.into());
         map.insert("root_bytes".to_owned(), root.into());
         map.insert("proof".to_owned(), proof.into());
+        map.insert("bytes".to_owned(), bytes_idx.into());
 
         map.insert("list_len_ind".to_owned(), list_len_ind.into());
         map.insert("list_item_ind".to_owned(), list_item_ind.into());
@@ -203,6 +207,7 @@ where
 
             map["val"] = new_proof["val"].clone();
             map.insert("field_value".to_owned(), new_proof["field_value"].clone());
+            map["bytes"] = new_proof["bytes"].clone();
 
             if let (
                 Some(serde_json::Value::Array(ref mut proof_map)),
