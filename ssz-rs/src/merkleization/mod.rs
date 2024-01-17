@@ -107,7 +107,7 @@ pub fn get_proof_into_idx(
     map.insert("val".to_owned(), val.into());
     map.insert("root_bytes".to_owned(), root.into());
     map.insert("proof".to_owned(), proof.into());
-    map.insert("bytes".to_owned(), vec![0, 31].into());
+    map.insert("bytes".to_owned(), vec![0, 32].into());
 
     map.insert("list_len_ind".to_owned(), list_len_ind.into());
     map.insert("list_item_ind".to_owned(), list_item_ind.into());
