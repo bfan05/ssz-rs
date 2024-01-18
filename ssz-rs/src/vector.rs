@@ -104,72 +104,50 @@ where
     }
 
     fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+        // idx of item to get
         let idx = vec[0];
         let roots = self.get_hash_tree();
-        let zeroes = self.get_zeroes();
 
         let (len, tree_depth) = self.get_len_and_tree_depth();
-
         let scale = get_power_of_two_ceil(self.as_ref().len() / len);
-
+        // size of each original element in bytes
         let element_size = BYTES_PER_CHUNK / scale;
         let bytes_idx = vec![(idx % scale) * element_size, ((idx % scale) + 1) * element_size];
 
-        let total_depth = get_power_of_two_ceil(N / scale);
-        let total_depth = log2(total_depth) as usize;
+        let n: u8 = (tree_depth as u8) - 1;
+        let mut dir: Vec<u8> = Vec::<u8>::new();
+        dir.resize(n.into(), 0);
 
-        let idx_to_get = (idx as usize) / scale;
+        let mut idx_to_get = (idx as usize) / scale;
 
-        let base_len = total_depth - tree_depth;
-
-        let mut base_path = vec![vec![0; 32]; base_len];
-        let mut base_dir = vec![0; base_len];
-
-        let list_len_ind = vec![0; total_depth];
-        let list_item_ind = vec![0; total_depth];
-
-        let mut root = roots[1].clone();
-        for i in 1..(base_len + 1) {
-            // base_path[base_len - i] contains the zero hash along the path
-            base_path[base_len - i] = zeroes[tree_depth + i].clone();
-            // root is the hash of the current element we are on, eventually will be hash of everything
-            let mut root_clone = root.clone();
-            // hash root with the corresponding 0
-            root_clone.append(&mut base_path[base_len - i].clone());
-            root = sha256(root_clone).to_vec();
+        for i in 0..n {
+            dir[(n - i - 1) as usize] = (idx_to_get % 2) as u8;
+            idx_to_get /= 2;
         }
 
-        // dir of proof
-        let mut new_dir = vec![0; tree_depth];
-        let mut dir_idx: usize = idx_to_get;
-        for i in 0..tree_depth {
-            new_dir[total_depth - base_len - 1 - i] = dir_idx % 2;
-            dir_idx /= 2;
+        let mut proof: Vec<Vec<u8>> = Vec::new();
+        let mut curr = 1;
+        for i in 0..dir.len() {
+            curr = curr * 2 + dir[i];
+            proof.push(roots[curr as usize ^ 1].clone())
         }
-        let mut roots_idx: usize = 1;
-        let mut new_path = Vec::new();
-        // roots_idx is the index of the element along the path whose hash we need
-        // new_path is the path of the merkle proof
-        for i in 0..tree_depth {
-            roots_idx = roots_idx * 2 + new_dir[i];
-            new_path.push(roots[roots_idx ^ 1].clone());
-        }
-        // get the full path and directions
-        base_path.append(&mut new_path);
-        base_dir.append(&mut new_dir);
+        let root = roots[1].clone();
 
-        // val is the hash root of the actual validator we want to get
-        let val = roots[roots_idx].clone();
+        let list_len_ind = vec![0; n as usize];
+        let list_item_ind = vec![0; n as usize];
+
+        let proof: Vec<String> = proof.iter().map(|p| hex::encode(p)).collect();
+
+        let val = roots[curr as usize].clone();
 
         let mut map = serde_json::Map::new();
 
-        let root = hex::encode(root);
+        let root_bytes = hex::encode(root);
         let val = hex::encode(val);
-        let proof: Vec<String> = base_path.iter().map(|p| hex::encode(p)).collect();
 
-        map.insert("directions".to_owned(), base_dir.into());
+        map.insert("directions".to_owned(), dir.into());
         map.insert("val".to_owned(), val.into());
-        map.insert("root_bytes".to_owned(), root.into());
+        map.insert("root_bytes".to_owned(), root_bytes.into());
         map.insert("proof".to_owned(), proof.into());
         map.insert("bytes".to_owned(), bytes_idx.into());
 
@@ -180,6 +158,7 @@ where
             map.insert("field_value".to_owned(), serde_json::to_value(&self[idx]).unwrap());
             return map;
         } else {
+            // Obtain a mutable reference to the field
             let field = &mut self[idx];
             let new_proof = field.get_proof(vec[1..].to_vec());
 

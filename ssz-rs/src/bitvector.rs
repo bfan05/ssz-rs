@@ -2,8 +2,10 @@ use crate::{
     de::{Deserialize, DeserializeError},
     error::{Error, InstanceError, TypeError},
     lib::*,
+    list::{get_power_of_two_ceil, log2, sha256},
     merkleization::{
         merkleize, pack_bytes, MerkleProof, MerkleizationError, Merkleized, Node, BITS_PER_CHUNK,
+        BYTES_PER_CHUNK,
     },
     ser::{Serialize, SerializeError},
     Serializable, SimpleSerialize,
@@ -190,15 +192,93 @@ pub struct Bitvector<const N: usize>(BitvectorInner);
 
 impl<const N: usize> MerkleProof for Bitvector<N> {
     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
-        unimplemented!();
+        let len = self.pack_bits().unwrap().len() / BYTES_PER_CHUNK;
+        let mut tree_depth = get_power_of_two_ceil(len);
+        tree_depth = log2(tree_depth) as usize;
+        (len, tree_depth)
     }
 
     fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
-        unimplemented!();
+        let (len, tree_depth) = self.get_len_and_tree_depth();
+
+        let base: usize = 2;
+        let pow2 = base.pow(tree_depth as u32);
+        let mut root_vec = vec![Vec::<u8>::new(); pow2];
+
+        let chunks = self.pack_bits().unwrap();
+        for i in 0..(chunks.len() / BYTES_PER_CHUNK) {
+            let mut slice: Vec<u8> = vec![0; BYTES_PER_CHUNK];
+            for j in (BYTES_PER_CHUNK * i)..(BYTES_PER_CHUNK * i + 32) {
+                slice[j - BYTES_PER_CHUNK * i] = chunks[j];
+            }
+
+            root_vec.push(slice);
+        }
+
+        for _ in len..pow2 {
+            let zeroes: Vec<u8> = vec![0; 32];
+            root_vec.push(zeroes);
+        }
+
+        for i in 1..pow2 {
+            let idx = pow2 - i;
+            let mut root_concat = root_vec[2 * idx].clone();
+            root_concat.append(&mut root_vec[2 * idx + 1].clone());
+            let new_root = sha256(root_concat).to_vec();
+            root_vec[idx] = new_root;
+        }
+        root_vec
     }
 
-    fn get_proof(&mut self, _vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
-        unimplemented!();
+    fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+        // chunk idx to get
+        let idx = vec[0];
+        let roots = self.get_hash_tree();
+
+        let (len, tree_depth) = self.get_len_and_tree_depth();
+        // size of each original element in bytes
+
+        let n: u8 = (tree_depth as u8) - 1;
+        let mut dir: Vec<u8> = Vec::<u8>::new();
+        dir.resize(n.into(), 0);
+
+        let mut idx_to_get = idx.clone();
+
+        for i in 0..n {
+            dir[(n - i - 1) as usize] = (idx_to_get % 2) as u8;
+            idx_to_get /= 2;
+        }
+
+        let mut proof: Vec<Vec<u8>> = Vec::new();
+        let mut curr = 1;
+        for i in 0..dir.len() {
+            curr = curr * 2 + dir[i];
+            proof.push(roots[curr as usize ^ 1].clone())
+        }
+        let root = roots[1].clone();
+
+        let list_len_ind = vec![0; n as usize];
+        let list_item_ind = vec![0; n as usize];
+
+        let proof: Vec<String> = proof.iter().map(|p| hex::encode(p)).collect();
+
+        let val = roots[curr as usize].clone();
+
+        let mut map = serde_json::Map::new();
+
+        let root_bytes = hex::encode(root);
+        let val = hex::encode(val);
+
+        map.insert("directions".to_owned(), dir.into());
+        map.insert("val".to_owned(), val.into());
+        map.insert("root_bytes".to_owned(), root_bytes.into());
+        map.insert("proof".to_owned(), proof.into());
+        map.insert("bytes".to_owned(), vec![0, 32].into());
+
+        map.insert("list_len_ind".to_owned(), list_len_ind.into());
+        map.insert("list_item_ind".to_owned(), list_item_ind.into());
+
+        return map;
     }
 }
 
