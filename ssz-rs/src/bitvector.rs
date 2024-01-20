@@ -206,7 +206,7 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
         let mut root_vec = vec![Vec::<u8>::new(); pow2];
 
         let chunks = self.pack_bits().unwrap();
-        for i in 0..(chunks.len() / BYTES_PER_CHUNK) {
+        for i in 0..len {
             let mut slice: Vec<u8> = vec![0; BYTES_PER_CHUNK];
             for j in (BYTES_PER_CHUNK * i)..(BYTES_PER_CHUNK * i + 32) {
                 slice[j - BYTES_PER_CHUNK * i] = chunks[j];
@@ -283,7 +283,7 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
         }
 
         let mut map = serde_json::Map::new();
-        let val = roots[idx].clone();
+        let val = roots[1].clone();
         let root_bytes = hex::encode(val.clone());
         let val = hex::encode(val);
 
