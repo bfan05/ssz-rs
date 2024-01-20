@@ -236,49 +236,64 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
         let roots = self.get_hash_tree();
 
         let (len, tree_depth) = self.get_len_and_tree_depth();
-        println!("len: {:?}", len);
-        println!("tree depth: {:?}", tree_depth);
-        // size of each original element in bytes
 
-        let n: u8 = (tree_depth as u8) - 1;
-        let mut dir: Vec<u8> = Vec::<u8>::new();
-        dir.resize(n.into(), 0);
+        if tree_depth > 0 {
+            let n: u8 = (tree_depth as u8) - 1;
+            let mut dir: Vec<u8> = Vec::<u8>::new();
+            dir.resize(n.into(), 0);
 
-        let mut idx_to_get = idx.clone();
+            let mut idx_to_get = idx.clone();
 
-        for i in 0..n {
-            dir[(n - i - 1) as usize] = (idx_to_get % 2) as u8;
-            idx_to_get /= 2;
+            for i in 0..n {
+                dir[(n - i - 1) as usize] = (idx_to_get % 2) as u8;
+                idx_to_get /= 2;
+            }
+
+            let mut proof: Vec<Vec<u8>> = Vec::new();
+            let mut curr = 1;
+            for i in 0..dir.len() {
+                curr = curr * 2 + dir[i];
+                proof.push(roots[curr as usize ^ 1].clone())
+            }
+            let root = roots[1].clone();
+
+            let list_len_ind = vec![0; n as usize];
+            let list_item_ind = vec![0; n as usize];
+
+            let proof: Vec<String> = proof.iter().map(|p| hex::encode(p)).collect();
+
+            let val = roots[curr as usize].clone();
+
+            let mut map = serde_json::Map::new();
+
+            let root_bytes = hex::encode(root);
+            let val = hex::encode(val);
+
+            map.insert("directions".to_owned(), dir.into());
+            map.insert("val".to_owned(), val.into());
+            map.insert("root_bytes".to_owned(), root_bytes.into());
+            map.insert("proof".to_owned(), proof.into());
+            map.insert("bytes".to_owned(), vec![0, 32].into());
+
+            map.insert("list_len_ind".to_owned(), list_len_ind.into());
+            map.insert("list_item_ind".to_owned(), list_item_ind.into());
+
+            return map;
         }
-
-        let mut proof: Vec<Vec<u8>> = Vec::new();
-        let mut curr = 1;
-        for i in 0..dir.len() {
-            curr = curr * 2 + dir[i];
-            proof.push(roots[curr as usize ^ 1].clone())
-        }
-        let root = roots[1].clone();
-
-        let list_len_ind = vec![0; n as usize];
-        let list_item_ind = vec![0; n as usize];
-
-        let proof: Vec<String> = proof.iter().map(|p| hex::encode(p)).collect();
-
-        let val = roots[curr as usize].clone();
 
         let mut map = serde_json::Map::new();
-
-        let root_bytes = hex::encode(root);
+        let val = roots[idx].clone();
+        let root_bytes = hex::encode(val.clone());
         let val = hex::encode(val);
 
-        map.insert("directions".to_owned(), dir.into());
+        map.insert("directions".to_owned(), Vec::<u8>::new().into());
         map.insert("val".to_owned(), val.into());
         map.insert("root_bytes".to_owned(), root_bytes.into());
-        map.insert("proof".to_owned(), proof.into());
+        map.insert("proof".to_owned(), Vec::<String>::new().into());
         map.insert("bytes".to_owned(), vec![0, 32].into());
 
-        map.insert("list_len_ind".to_owned(), list_len_ind.into());
-        map.insert("list_item_ind".to_owned(), list_item_ind.into());
+        map.insert("list_len_ind".to_owned(), Vec::<u8>::new().into());
+        map.insert("list_item_ind".to_owned(), Vec::<u8>::new().into());
 
         return map;
     }
