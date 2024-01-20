@@ -2,9 +2,10 @@ use crate::{
     de::{Deserialize, DeserializeError},
     error::{Error, InstanceError},
     lib::*,
+    list::{get_power_of_two_ceil, log2, sha256},
     merkleization::{
         merkleize, mix_in_length, pack_bytes, MerkleProof, MerkleizationError, Merkleized, Node,
-        BITS_PER_CHUNK,
+        BITS_PER_CHUNK, BYTES_PER_CHUNK,
     },
     ser::{Serialize, SerializeError},
     Serializable, SimpleSerialize,
@@ -26,15 +27,131 @@ pub struct Bitlist<const N: usize>(BitlistInner);
 
 impl<const N: usize> MerkleProof for Bitlist<N> {
     fn get_len_and_tree_depth(&mut self) -> (usize, usize) {
-        unimplemented!();
+        let len = self.pack_bits().unwrap().len() / BYTES_PER_CHUNK;
+        let mut tree_depth = get_power_of_two_ceil(len);
+        tree_depth = log2(tree_depth) as usize;
+        (len, tree_depth)
     }
 
     fn get_hash_tree(&mut self) -> Vec<Vec<u8>> {
-        unimplemented!();
+        let (len, tree_depth) = self.get_len_and_tree_depth();
+
+        let base: usize = 2;
+        let pow2 = base.pow(tree_depth as u32);
+        let mut root_vec = vec![Vec::<u8>::new(); pow2];
+
+        let chunks = self.pack_bits().unwrap();
+        for i in 0..(chunks.len() / BYTES_PER_CHUNK) {
+            let mut slice: Vec<u8> = vec![0; BYTES_PER_CHUNK];
+            for j in (BYTES_PER_CHUNK * i)..(BYTES_PER_CHUNK * i + 32) {
+                slice[j - BYTES_PER_CHUNK * i] = chunks[j];
+            }
+
+            root_vec.push(slice);
+        }
+
+        for _ in len..pow2 {
+            let zeroes: Vec<u8> = vec![0; 32];
+            root_vec.push(zeroes);
+        }
+
+        for i in 1..pow2 {
+            let idx = pow2 - i;
+            let mut root_concat = root_vec[2 * idx].clone();
+            root_concat.append(&mut root_vec[2 * idx + 1].clone());
+            let new_root = sha256(root_concat).to_vec();
+            root_vec[idx] = new_root;
+        }
+        root_vec
     }
 
-    fn get_proof(&mut self, _vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
-        unimplemented!();
+    fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
+        // chunk idx to get
+        let idx = vec[0];
+        let roots = self.get_hash_tree();
+        let zeroes = self.get_zeroes();
+
+        let (len, tree_depth) = self.get_len_and_tree_depth();
+
+        let bytes_idx = vec![0, 32];
+
+        let total_depth = get_power_of_two_ceil(N / 256);
+        let total_depth = log2(total_depth) as usize;
+
+        let idx_to_get = idx.clone();
+
+        let base_len = total_depth - tree_depth;
+        let mut base_path = vec![vec![0; 32]; base_len + 1];
+
+        let mut len_bytes: Vec<u8> = vec![0; 32];
+        let mut len_int = self.len();
+        for i in 0..32 {
+            len_bytes[i] = (len_int % 256) as u8;
+            len_int /= 256;
+        }
+
+        base_path[0] = len_bytes;
+        let mut base_dir = vec![0; base_len + 1];
+
+        let mut list_len_ind = vec![0; total_depth + 1];
+        list_len_ind[0] = 1;
+        let mut list_item_ind = vec![0; total_depth + 1];
+        list_item_ind[total_depth] = 1;
+
+        let mut root = roots[1].clone();
+        for i in 0..base_len {
+            // base_path[base_len - i] contains the zero hash along the path
+            base_path[base_len - i] = zeroes[tree_depth + i].clone();
+            // root is the hash of the current element we are on, eventually will be hash of everything
+            let mut root_clone = root.clone();
+            // hash root with the corresponding 0
+            root_clone.append(&mut base_path[base_len - i].clone());
+            root = sha256(root_clone).to_vec();
+        }
+        let mut root_clone = root.clone();
+
+        root_clone.append(&mut base_path[0].clone());
+        // root is the root of all the validators (including nonexistent ones)
+        root = sha256(root_clone).to_vec();
+
+        // dir of proof
+        let mut new_dir = vec![0; tree_depth];
+        let mut dir_idx: usize = idx_to_get;
+        for i in 0..tree_depth {
+            new_dir[total_depth - base_len - 1 - i] = dir_idx % 2;
+            dir_idx /= 2;
+        }
+        let mut roots_idx: usize = 1;
+        let mut new_path = Vec::new();
+        // roots_idx is the index of the element along the path whose hash we need
+        // new_path is the path of the merkle proof
+        for i in 0..tree_depth {
+            roots_idx = roots_idx * 2 + new_dir[i];
+            new_path.push(roots[roots_idx ^ 1].clone());
+        }
+        // get the full path and directions
+        base_path.append(&mut new_path);
+        base_dir.append(&mut new_dir);
+
+        // val is the chunk we actually want to get
+        let val = roots[roots_idx].clone();
+
+        let mut map = serde_json::Map::new();
+
+        let root = hex::encode(root);
+        let val = hex::encode(val);
+        let proof: Vec<String> = base_path.iter().map(|p| hex::encode(p)).collect();
+
+        map.insert("directions".to_owned(), base_dir.into());
+        map.insert("val".to_owned(), val.into());
+        map.insert("root_bytes".to_owned(), root.into());
+        map.insert("proof".to_owned(), proof.into());
+        map.insert("bytes".to_owned(), bytes_idx.into());
+
+        map.insert("list_len_ind".to_owned(), list_len_ind.into());
+        map.insert("list_item_ind".to_owned(), list_item_ind.into());
+
+        map
     }
 }
 
