@@ -486,8 +486,6 @@ fn derive_merkle_proof_impl(data: &Data, name: &Ident, generics: &Generics) -> T
                         {serde_json::to_value("").unwrap()}
                     };
 
-                    println!("here 2");
-
                     if vec.len() == 1 {
                         proof.insert("field_value".to_owned(), serde_json::to_value(&field_value).unwrap());
                         return proof;
@@ -497,8 +495,6 @@ fn derive_merkle_proof_impl(data: &Data, name: &Ident, generics: &Generics) -> T
                             {serde_json::Map::new()}
                         };
 
-                        println!("new proof: {:?}", new_proof);
-
                         if let (
                             Some(serde_json::Value::Array(ref mut directions)),
                             Some(serde_json::Value::Array(new_directions)),
@@ -507,13 +503,9 @@ fn derive_merkle_proof_impl(data: &Data, name: &Ident, generics: &Generics) -> T
                             directions.extend(new_directions.clone());
                         }
 
-                        println!("here 3");
-
                         proof["val"] = new_proof["val"].clone();
                         proof.insert("field_value".to_owned(), new_proof["field_value"].clone());
                         proof["bytes"] = new_proof["bytes"].clone();
-
-                        println!("here 4");
 
 
                         if let (
