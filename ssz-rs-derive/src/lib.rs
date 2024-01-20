@@ -438,7 +438,6 @@ fn derive_merkle_proof_impl(data: &Data, name: &Ident, generics: &Generics) -> T
                 };
 
                 quote! {
-                    println!("index: {:?}", index);
                     if index == #i {
                         serde_json::to_value(&self.#field_name).unwrap()
                     }
