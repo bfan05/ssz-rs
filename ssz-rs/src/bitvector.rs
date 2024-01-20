@@ -279,6 +279,8 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
             map.insert("list_len_ind".to_owned(), list_len_ind.into());
             map.insert("list_item_ind".to_owned(), list_item_ind.into());
 
+            println!("here");
+
             return map;
         }
 
@@ -296,6 +298,8 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
 
         map.insert("list_len_ind".to_owned(), Vec::<u8>::new().into());
         map.insert("list_item_ind".to_owned(), Vec::<u8>::new().into());
+
+        println!("here 1");
 
         return map;
     }
