@@ -497,6 +497,8 @@ fn derive_merkle_proof_impl(data: &Data, name: &Ident, generics: &Generics) -> T
                             {serde_json::Map::new()}
                         };
 
+                        println!("new proof: {:?}", new_proof);
+
                         if let (
                             Some(serde_json::Value::Array(ref mut directions)),
                             Some(serde_json::Value::Array(new_directions)),
