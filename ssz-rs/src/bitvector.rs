@@ -270,10 +270,11 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
             let val = hex::encode(val);
 
             map.insert("directions".to_owned(), dir.into());
-            map.insert("val".to_owned(), val.into());
+            map.insert("val".to_owned(), val.clone().into());
             map.insert("root_bytes".to_owned(), root_bytes.into());
             map.insert("proof".to_owned(), proof.into());
             map.insert("bytes".to_owned(), vec![0, 32].into());
+            map.insert("field_value".to_owned(), val.into());
 
             map.insert("list_len_ind".to_owned(), list_len_ind.into());
             map.insert("list_item_ind".to_owned(), list_item_ind.into());
@@ -287,10 +288,11 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
         let val = hex::encode(val);
 
         map.insert("directions".to_owned(), Vec::<u8>::new().into());
-        map.insert("val".to_owned(), val.into());
+        map.insert("val".to_owned(), val.clone().into());
         map.insert("root_bytes".to_owned(), root_bytes.into());
         map.insert("proof".to_owned(), Vec::<String>::new().into());
         map.insert("bytes".to_owned(), vec![0, 32].into());
+        map.insert("field_value".to_owned(), val.into());
 
         map.insert("list_len_ind".to_owned(), Vec::<u8>::new().into());
         map.insert("list_item_ind".to_owned(), Vec::<u8>::new().into());
