@@ -240,9 +240,10 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
         println!("len is ! {:?}", len);
         println!("tree_depth is ! {:?}", tree_depth);
         println!("roots is ! {:?}", roots);
+        println!("changed!");
 
         if tree_depth > 0 {
-            let n: u8 = (tree_depth as u8) - 1;
+            let n: u8 = (tree_depth as u8);
             let mut dir: Vec<u8> = Vec::<u8>::new();
             dir.resize(n.into(), 0);
 
