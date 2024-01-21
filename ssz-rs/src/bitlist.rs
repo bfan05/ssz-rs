@@ -72,8 +72,6 @@ impl<const N: usize> MerkleProof for Bitlist<N> {
         let zeroes = self.get_zeroes();
 
         let (len, tree_depth) = self.get_len_and_tree_depth();
-        println!("len is {}", len);
-        println!("roots is {:?}", roots);
 
         let bytes_idx = vec![0, 32];
 
@@ -87,7 +85,7 @@ impl<const N: usize> MerkleProof for Bitlist<N> {
 
         let mut len_bytes: Vec<u8> = vec![0; 32];
         let mut len_int = self.len();
-        println!("len_int is {}", len_int);
+
         for i in 0..32 {
             len_bytes[i] = (len_int % 256) as u8;
             len_int /= 256;

@@ -196,7 +196,7 @@ where
         } else {
             // Obtain a mutable reference to the field
             let field = &mut self[idx];
-            println!("field PRINTED: {:?}", field);
+            // println!("field PRINTED: {:?}", field);
             let new_proof = field.get_proof(vec[1..].to_vec());
 
             if let (
