@@ -236,6 +236,10 @@ impl<const N: usize> MerkleProof for Bitvector<N> {
         let roots = self.get_hash_tree();
 
         let (len, tree_depth) = self.get_len_and_tree_depth();
+        println!("idx is ! {:?}", idx);
+        println!("len is ! {:?}", len);
+        println!("tree_depth is ! {:?}", tree_depth);
+        println!("roots is ! {:?}", roots);
 
         if tree_depth > 0 {
             let n: u8 = (tree_depth as u8) - 1;

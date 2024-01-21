@@ -102,7 +102,7 @@ where
         root_vec
     }
     fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
-        println!("TESTTTTTTT!");
+        // println!("TESTTTTTTT!");
         let idx = vec[0];
         let roots = self.get_hash_tree();
         let zeroes = self.get_zeroes();
@@ -196,6 +196,7 @@ where
         } else {
             // Obtain a mutable reference to the field
             let field = &mut self[idx];
+            println!("field PRINTED: {:?}", field);
             let new_proof = field.get_proof(vec[1..].to_vec());
 
             if let (
