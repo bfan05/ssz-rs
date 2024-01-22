@@ -73,7 +73,7 @@ impl<const N: usize> MerkleProof for Bitlist<N> {
         let roots = self.get_hash_tree();
         let zeroes = self.get_zeroes();
 
-        let (len, tree_depth) = self.get_len_and_tree_depth();
+        let (_len, tree_depth) = self.get_len_and_tree_depth();
 
         let bytes_idx = vec![0, 32];
 

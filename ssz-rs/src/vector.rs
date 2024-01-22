@@ -114,7 +114,7 @@ where
         let element_size = BYTES_PER_CHUNK / scale;
         let bytes_idx = vec![(idx % scale) * element_size, ((idx % scale) + 1) * element_size];
 
-        let n: u8 = (tree_depth as u8);
+        let n: u8 = tree_depth as u8;
         let mut dir: Vec<u8> = Vec::<u8>::new();
         dir.resize(n.into(), 0);
 
