@@ -155,14 +155,16 @@ where
             let list_item_ind = vec![0];
             let dirs = vec![1];
             let bytes_idx = vec![0, 32];
+            let val = hex::encode(len_bytes);
+
             map.insert("directions".to_owned(), dirs.into());
-            map.insert("val".to_owned(), len_bytes.clone().into());
+            map.insert("val".to_owned(), val.clone().into());
             map.insert("root_bytes".to_owned(), root.into());
             map.insert("proof".to_owned(), proof.into());
             map.insert("bytes".to_owned(), bytes_idx.into());
             map.insert("list_len_ind".to_owned(), list_len_ind.into());
             map.insert("list_item_ind".to_owned(), list_item_ind.into());
-            map.insert("field_value".to_owned(), len_bytes.into());
+            map.insert("field_value".to_owned(), val.into());
             return map;
         }
 
