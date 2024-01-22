@@ -21,6 +21,8 @@ fn byte_length(bound: usize) -> usize {
 
 type BitlistInner = BitVec<u8, Lsb0>;
 
+pub const LIST_LEN_IDX: usize = usize::MAX;
+
 /// A homogenous collection of a variable number of boolean values.
 #[derive(PartialEq, Eq, Clone)]
 pub struct Bitlist<const N: usize>(BitlistInner);
@@ -91,7 +93,7 @@ impl<const N: usize> MerkleProof for Bitlist<N> {
             len_int /= 256;
         }
 
-        base_path[0] = len_bytes;
+        base_path[0] = len_bytes.clone();
         let mut base_dir = vec![0; base_len + 1];
 
         let mut list_len_ind = vec![0; total_depth + 1];
@@ -110,10 +112,31 @@ impl<const N: usize> MerkleProof for Bitlist<N> {
             root = sha256(root_clone).to_vec();
         }
         let mut root_clone = root.clone();
+        let root_copy = root.clone();
 
         root_clone.append(&mut base_path[0].clone());
         // root is the root of all the validators (including nonexistent ones)
         root = sha256(root_clone).to_vec();
+
+        if idx == LIST_LEN_IDX {
+            assert!(vec.len() == 1);
+            let mut map = serde_json::Map::new();
+            let root = hex::encode(root);
+            let proof: Vec<String> = vec![hex::encode(root_copy)];
+            let list_len_ind = vec![0];
+            let list_item_ind = vec![0];
+            let dirs = vec![1];
+            let bytes_idx = vec![0, 32];
+            map.insert("directions".to_owned(), dirs.into());
+            map.insert("val".to_owned(), len_bytes.clone().into());
+            map.insert("root_bytes".to_owned(), root.into());
+            map.insert("proof".to_owned(), proof.into());
+            map.insert("bytes".to_owned(), bytes_idx.into());
+            map.insert("list_len_ind".to_owned(), list_len_ind.into());
+            map.insert("list_item_ind".to_owned(), list_item_ind.into());
+            map.insert("field_value".to_owned(), len_bytes.into());
+            return map;
+        }
 
         // dir of proof
         let mut new_dir = vec![0; tree_depth];
