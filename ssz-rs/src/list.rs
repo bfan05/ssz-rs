@@ -14,7 +14,7 @@ use crate::{
 
 // use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
-
+pub const LIST_LEN_IDX: usize = usize::MAX;
 /// A homogenous collection of a variable number of values.
 #[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
@@ -102,7 +102,6 @@ where
         root_vec
     }
     fn get_proof(&mut self, vec: Vec<usize>) -> serde_json::Map<String, serde_json::Value> {
-        // println!("TESTTTTTTT!");
         let idx = vec[0];
         let roots = self.get_hash_tree();
         let zeroes = self.get_zeroes();
@@ -112,7 +111,6 @@ where
         let scale = get_power_of_two_ceil(self.as_ref().len() / len);
 
         let element_size = BYTES_PER_CHUNK / scale;
-        let bytes_idx = vec![(idx % scale) * element_size, ((idx % scale) + 1) * element_size];
 
         let total_depth = get_power_of_two_ceil(N / scale);
         let total_depth = log2(total_depth) as usize;
@@ -129,13 +127,8 @@ where
             len_int /= 256;
         }
 
-        base_path[0] = len_bytes;
+        base_path[0] = len_bytes.clone();
         let mut base_dir = vec![0; base_len + 1];
-
-        let mut list_len_ind = vec![0; total_depth + 1];
-        list_len_ind[0] = 1;
-        let mut list_item_ind = vec![0; total_depth + 1];
-        list_item_ind[total_depth] = 1;
 
         let mut root = roots[1].clone();
         for i in 0..base_len {
@@ -148,10 +141,35 @@ where
             root = sha256(root_clone).to_vec();
         }
         let mut root_clone = root.clone();
-
+        let root_copy = root.clone();
         root_clone.append(&mut base_path[0].clone());
         // root is the root of all the validators (including nonexistent ones)
         root = sha256(root_clone).to_vec();
+
+        if idx == LIST_LEN_IDX {
+            assert!(vec.len() == 1);
+            let mut map = serde_json::Map::new();
+            let root = hex::encode(root);
+            let proof: Vec<String> = vec![hex::encode(root_copy)];
+            let list_len_ind = vec![0];
+            let list_item_ind = vec![0];
+            let dirs = vec![1];
+            let bytes_idx = vec![0, 32];
+            map.insert("directions".to_owned(), dirs.into());
+            map.insert("val".to_owned(), len_bytes.clone().into());
+            map.insert("root_bytes".to_owned(), root.into());
+            map.insert("proof".to_owned(), proof.into());
+            map.insert("bytes".to_owned(), bytes_idx.into());
+            map.insert("list_len_ind".to_owned(), list_len_ind.into());
+            map.insert("list_item_ind".to_owned(), list_item_ind.into());
+            map.insert("field_value".to_owned(), len_bytes.into());
+            return map;
+        }
+
+        let mut list_len_ind = vec![0; total_depth + 1];
+        list_len_ind[0] = 1;
+        let mut list_item_ind = vec![0; total_depth + 1];
+        list_item_ind[total_depth] = 1;
 
         // dir of proof
         let mut new_dir = vec![0; tree_depth];
@@ -180,6 +198,7 @@ where
         let root = hex::encode(root);
         let val = hex::encode(val);
         let proof: Vec<String> = base_path.iter().map(|p| hex::encode(p)).collect();
+        let bytes_idx = vec![(idx % scale) * element_size, ((idx % scale) + 1) * element_size];
 
         map.insert("directions".to_owned(), base_dir.into());
         map.insert("val".to_owned(), val.into());
